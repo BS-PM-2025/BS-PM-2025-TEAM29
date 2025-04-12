@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "beershebareports",
+  "private_key_id": "57634337ff0e0895a01ea41abd3a96c6455ed8d8",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDTpj1CgryD0XhF\n/Fr4sngpzNa3U6x8GZLwj6pzVhvmuDYWgDS9jbiTgs+LOF/40moU/Fq+wKc73qGO\nW+VWwdSNFS4IhrpYJBdZN39YOgE9Q6PGb+rAGhXQBxiTS4HyYlTG3CKaiK4/L2vL\nJka3D7uAFtvPSTFQsPU7rIjM3tIIdJOTF9Cfc4LmBSG5m4/GjBokeR7HCRkEbPSy\nrXf+/k/dHNUJlEqzssN22BgXouVZn0ZluxWtL5VwwVoxATPQ7t2/FdPxQ0aNjqcM\nw9VU0d3NDbEhWs4NFg07xNv+2V9NKukdPWOCwL2MEfR/hTRELLtQXHfuNrVws4dF\nDT7Ao8pzAgMBAAECggEAHj64rQiBvVSccLk0nCrk1mmvRVjFDUxE80Y/Krw4wH+9\nOvnsj39Gdnilr/9zt4WveHrs0irgZcMq0xfOw4HEyLnTb48mkfHruZQfXpGWG8B5\nZvdsqdxlwZSXWR/b3LIF62UJ4jYmBbbWcJwc/uFV/2KaMW+u3G5tR68gMtFPXRBe\nftdihLm503IXHLaSS+roCCcfGqqpapT8rBdFbUVx7z/hevrFt9nJbZwYQyMsmvMN\n0iOmVVMtRpoAUM+QroSrVPYHIUxolGMEGLc2GdybB2xX2TSn8L0qnLNyWCNpD0TW\nr2WCwP1s1QQfW03T8YRJH+MhuUOau5dJK++FrdleAQKBgQDqjla93ARiB8sXYcm4\nGnmPo6HeiYYNvOo9Y92ffvKtzYBUI1keco4IwuLZlokmy80sM/Vjh3TY4wb6fABf\nTR5bl+P5QHkxy3BswOtt9G586ydaZqqMXYAIjS21eLW5Q0XtCWg5KeerqyozaRCp\ngLgxibuVgGp/3T4zyPiTT9TCRQKBgQDm/8hTTp3RyJ3Cy33AR0Pav2f2tx83BH4k\n6My+InH/Fv8uO8OcACLx5j+53DIY/hXMfo+rV3ladslYtJGzU/8JUy9WQzUcBpyv\nCqlY6hT1LqxV/pMRbde/v0NZhiCzO1+S2Z9PyDkzx6iCalvsv+CQ83yvgJqtub6s\nCNFrEz2BVwKBgQDmh5dBayjzoG0/QeEcjQjE4DKLoeabQf2G8Mw1onOp1rw19bf1\ncOmgOsryyD1sYAn7U+XuOIfjUt7c+Vr0T7tykkqCA5gaFLUebk3197NQG17GPvmI\nk6zuurMeFNGmkDP90K0a4dDMrKIBfVXfAqAGMDSpr1j86tnj07ZcMq4NcQKBgCiM\nXa3B7xIUFR1MexZ1bAPJ9YXpPyF5OGtiMg5uHXSZpNGIzB1mKLwtnqIRdPnOICV1\nUeLRyAuJLm7Tw3+nDu2kHHsX8QqqXnabeH6TGHqxZq7xsP8uOOD/weLFGJhdo7kz\nWjO3AdOFCJ9b7Cbyx4iqNQjZmk1EfaPVKG2TQwihAoGBAKYKt4rekjgmjHIYAeUw\nE5LLuJ1vVA6INdi73Sru+OiaHcy9Bx93W+Zg5rQvBh7TJKTVZx2OpTEqwmfg6Loi\ngvdG87kQj8WywVET0EK77lCwvCe/X1VTY+YYDxcVF0mssXOaeHhfYtuVMUCSEh2K\nlzZoEyb/aAJaq1HNLyRJLtEc\n-----END PRIVATE KEY-----\n",
+  "client_email": "firebase-adminsdk-fbsvc@beershebareports.iam.gserviceaccount.com",
+  "client_id": "115560807779629528336",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fbsvc%40beershebareports.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
