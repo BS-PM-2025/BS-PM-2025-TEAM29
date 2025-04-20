@@ -7,6 +7,19 @@ import logging
 import datetime
 
 
+def initialize_firebase():
+    if not firebase_admin._apps: 
+        try:
+
+            cred = credentials.Certificate(settings.FIREBASE_CREDENTIALS_PATH)
+            firebase_admin.initialize_app(cred)
+            logging.info("Firebase initialized successfully.")
+        except Exception as e:
+            logging.error(f"Error initializing Firebase: {e}")
+    else:
+        logging.info("Firebase is already initialized.")
+
+    return firestore.client()
 
 
 
