@@ -1,3 +1,5 @@
+<!-- Malik -->
+
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
@@ -5,201 +7,187 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>רשימת דיווחים עם מפה</title>
     <link href="https://fonts.googleapis.com/css2?family=David:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.5.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.0/css/bootstrap.min.css">
     <style>
-        /* General page styles */
-body {
-    font-family: 'David', sans-serif;
-    background-color: #f9f9f9;
-    padding: 20px;
-    direction: rtl;
-}
+        body {
+            font-family: 'David', sans-serif;
+            background: linear-gradient(to right, #e0f7fa, #d1e9f9);
+            margin: 0;
+            padding: 40px 15px;
+        }
 
-/* Header */
-h1 {
-    font-size: 24px;
-    color: #2c3e50;
-    margin-bottom: 20px;
-    text-align: center;
-}
+        h1 {
+            text-align: center;
+            color: #007bff;
+            margin-bottom: 30px;
+            font-size: 2rem;
+        }
 
-/* Add Report Button */
-.add-report-btn {
-    display: inline-block;
-    background-color: #3498db;
-    color: #fff;
-    padding: 10px 20px;
-    font-size: 14px;
-    border-radius: 5px;
-    text-decoration: none;
-    margin-bottom: 20px;
-}
+        .add-report-btn {
+            display: block;
+            width: fit-content;
+            margin: 0 auto 30px auto;
+            background-color: #007bff;
+            color: white;
+            padding: 10px 25px;
+            border-radius: 8px;
+            font-weight: bold;
+            text-decoration: none;
+            transition: background 0.3s ease;
+        }
 
-.add-report-btn:hover {
-    background-color: #2980b9;
-}
+        .add-report-btn:hover {
+            background-color: #0056b3;
+        }
 
-/* Report item list */
-.report-item {
-    background-color: #fff;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 15px;
-    margin-bottom: 10px;
-}
+        .report-item {
+            direction: rtl;
+            text-align: right;
+            background-color: #ffffffcc;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
 
-.report-item h5 {
-    font-size: 18px;
-    color: #34495e;
-}
+        .report-item h5 {
+            font-size: 1.2rem;
+            color: #333;
+            margin-bottom: 10px;
+        }
 
-.report-item p {
-    font-size: 14px;
-    color: #7f8c8d;
-    margin: 5px 0;
-}
+        .report-item p {
+            margin: 4px 0;
+            color: #555;
+            font-size: 0.95rem;
+        }
 
-.location {
-    font-weight: bold;
-}
+        .location {
+            font-weight: bold;
+        }
 
-/* Map container */
-#map {
-    width: 100%;
-    height: 600px;  /* Increase the height */
-    margin-top: 20px;
-    border-radius: 8px;
-}
+        #map {
+            width: 100%;
+            height: 500px;
+            margin-top: 30px;
+            border-radius: 12px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
 
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+        }
 
-/* Pagination styles */
-.pagination {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-top: 30px;
-}
+        .pagination .page-link {
+            color: #007bff;
+            border: 1px solid #007bff;
+            border-radius: 6px;
+            margin: 0 5px;
+            padding: 6px 12px;
+        }
 
-.pagination .page-item {
-    margin: 0 10px;
-}
+        .pagination .page-link:hover {
+            background-color: #007bff;
+            color: white;
+        }
 
-.pagination .page-link {
-    text-decoration: none;
-    color: #3498db;
-    font-size: 16px;
-    padding: 8px 12px;
-    border-radius: 5px;
-    border: 1px solid #3498db;
-}
-
-.pagination .page-link:hover {
-    background-color: #3498db;
-    color: white;
-}
-
-.pagination .current-page {
-    font-size: 16px;
-    font-weight: bold;
-    color: #34495e;
-    margin: 0 10px;
-}
+        .pagination .current-page {
+            font-weight: bold;
+            font-size: 1rem;
+            color: #333;
+            margin: 0 10px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>רשימת דיווחים</h1>
 
-        <!-- Add Report Button -->
         <a href="{% url 'add_report' %}" class="add-report-btn">הוסף דיווח חדש</a>
 
-        <!-- Loop through reports and display them -->
         {% for report in reports_data %}
         <div class="report-item">
             <h5>{{ report.title }}</h5>
-            <p>תיאור הדיווח: {{ report.description }}</p>
+            <p>תיאור: {{ report.description }}</p>
             <p class="location">מיקום: {{ report.location }}</p>
-            <!-- Convert the type to Hebrew -->
-        <p class="location">סוג דיווח: {{ report.type_name }}</p>
-      </div>
+            <p>סוג דיווח: {{ report.type_name }}</p>
+        </div>
         {% endfor %}
 
-        <!-- Map -->
         <div class="form-group">
-            <label for="map" class="form-label">מפה של כל הדיווחים</label>
+            <label for="map" class="form-label">מפת הדיווחים</label>
             <div id="map"></div>
         </div>
 
-        <!-- Pagination controls -->
         <div class="pagination">
-            <span class="page-item disabled">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
-            <div class="pagination-links">
-                {% if page_obj.has_previous %}
-                    <a href="?page=1" class="page-link">First</a>
-                    <a href="?page={{ page_obj.previous_page_number }}" class="page-link">Previous</a>
-                {% endif %}
-                <span class="current-page">{{ page_obj.number }}</span>
-                {% if page_obj.has_next %}
-                    <a href="?page={{ page_obj.next_page_number }}" class="page-link">Next</a>
-                    <a href="?page={{ page_obj.paginator.num_pages }}" class="page-link">Last</a>
-                {% endif %}
-            </div>
+            {% if page_obj.has_previous %}
+                <a href="?page=1" class="page-link">ראשון</a>
+                <a href="?page={{ page_obj.previous_page_number }}" class="page-link">הקודם</a>
+            {% endif %}
+
+            <span class="current-page">עמוד {{ page_obj.number }} מתוך {{ page_obj.paginator.num_pages }}</span>
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}" class="page-link">הבא</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}" class="page-link">אחרון</a>
+            {% endif %}
         </div>
     </div>
+
     <script>
         function initMap() {
-            var beershevaCoords = { lat: 31.2518, lng: 34.7913 };
-            var map = new google.maps.Map(document.getElementById('map'), {
-                center: beershevaCoords,
+            const map = new google.maps.Map(document.getElementById('map'), {
+                center: { lat: 31.2518, lng: 34.7913 },
                 zoom: 12
             });
-    
-            // Markers loop with scoped info windows
+
             {% for report in reports_data %}
             (function() {
-                var position = { lat: {{ report.latitude|default:0 }}, lng: {{ report.longitude|default:0 }} };
-                var marker = new google.maps.Marker({
-                    position: position,
+                const marker = new google.maps.Marker({
+                    position: {
+                        lat: {{ report.latitude|default:0 }},
+                        lng: {{ report.longitude|default:0 }}
+                    },
                     map: map,
                     title: '{{ report.title|escapejs }}',
                     icon: {
                         path: google.maps.SymbolPath.CIRCLE,
-                        scale: 12,
-                        fillColor: '#ff6347',
+                        scale: 10,
+                        fillColor: "#ff0000",
                         fillOpacity: 1,
+                        strokeColor: "#ffffff",
                         strokeWeight: 2
                     }
                 });
-    
-                var infoWindow = new google.maps.InfoWindow({
+
+                const infoWindow = new google.maps.InfoWindow({
                     content: `
-                        <div style="font-family: 'David', sans-serif;">
+                        <div style="font-family: 'David', sans-serif; font-size: 14px; direction: rtl; text-align: right;">
                             <strong>{{ report.title|escapejs }}</strong><br>
-                            תיאור: {{ report.description|escapejs }}<br>
-                            סוג דיווח: {{ report.type_name|escapejs }}<br>
-                            מיקום: {{ report.location|escapejs }}
+                            <span>תיאור:</span> <span style="display:inline-block; direction: rtl;">{{ report.description|escapejs }}</span><br>
+                            <span>מיקום:</span> <span style="display:inline-block; direction: rtl;">{{ report.location|escapejs }}</span><br>
+                            <span>סוג דיווח:</span> <span style="display:inline-block; direction: rtl;">{{ report.type_name|escapejs }}</span>
                         </div>`
                 });
-    
+
                 marker.addListener('click', function() {
                     infoWindow.open(map, marker);
                 });
             })();
             {% endfor %}
         }
-    
+
         function loadMapScript() {
-            var script = document.createElement('script');
+            const script = document.createElement('script');
             script.src = "https://maps.googleapis.com/maps/api/js?key=AIzaSyDlCLAutdnujjoTEDdpYwIUvOSTluY2rRQ&callback=initMap";
             script.async = true;
             script.defer = true;
             document.body.appendChild(script);
         }
-    
+
         window.onload = loadMapScript;
     </script>
-    
-
-
 </body>
 </html>
