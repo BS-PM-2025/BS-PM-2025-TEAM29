@@ -80,3 +80,12 @@ def get_reports_from_firebase(report_type=None, user_location=None, radius=None)
 
     return reports_list
 
+
+#Ibrahim BSPM25T29-3
+def get_report_by_id(report_id):
+    """Get a single report by its ID"""
+    db = firestore.client()
+    doc = db.collection('Reports').document(report_id).get()
+    if doc.exists:
+        return doc.to_dict()
+    return None
