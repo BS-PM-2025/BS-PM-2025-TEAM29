@@ -24,16 +24,12 @@ REPORT_TYPES = [
     ('Building', 'בעיות בבניינים')
 ]
 
-
 class ReportForm(forms.ModelForm):
     type = forms.ChoiceField(choices=REPORT_TYPES)
 
     class Meta:
         model = Report
         fields = ['title', 'description', 'place', 'latitude', 'longitude', 'type']
-
-
-
 type_dict = {
             'Road': 'נזק לכביש',
             'Accident': 'תאונות',
@@ -56,4 +52,3 @@ type_dict = {
             'PublicRestroom': 'שירותים ציבוריים',
             'Building': 'בעיות בבניינים'
         }
-
