@@ -19,3 +19,41 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
+def user_login(request):
+    if request.method == 'POST':
+        username = request.POST['username']
+        password = request.POST['password']
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            return redirect('report_list')
+        else:
+            messages.error(request, 'Invalid username or password.')
+    return render(request, 'login.html')
+
+
+def register_view(request):
+    if request.method == 'POST':
+        username = request.POST['username']
+        password = request.POST['password']
+        password2 = request.POST['confirm_password']
+
+        if password != password2:
+            messages.error(request, "Passwords do not match.")
+            return redirect('register')
+
+        if User.objects.filter(username=username).exists():
+            messages.error(request, "Username already taken.")
+            return redirect('register')
+
+        user = User.objects.create_user(username=username, password=password)
+        login(request, user)  # auto-login after register
+        return redirect('report_list')
+
+    return render(request, 'register.html')
+
+
+def user_logout(request):
+    logout(request)
+    return redirect('report_list')
