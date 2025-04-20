@@ -1,44 +1,74 @@
+<!-- Malik -->
+
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>Nearby Issues</title>
+    <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: sans-serif;
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(to right, #f4f7fc, #e0ecf5);
+            margin: 0;
+            padding: 0;
         }
+
+        header {
+            background-color: #007bff;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+
         #map {
-            height: 1000px;
+            height: 90vh;
             width: 100%;
-            margin-top: 20px;
+        }
+
+        .info-box {
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .info-box strong {
+            color: #007bff;
+            font-size: 16px;
         }
     </style>
 </head>
 <body>
-    <h2>Nearby Issues</h2>
+    <header>
+        Nearby Issues Map 🗺️
+    </header>
+
     <div id="map"></div>
 
     <script>
-    function initMap() {
-        const map = new google.maps.Map(document.getElementById("map"), {
-            zoom: 12,
-            center: {lat: 31.2518, lng: 34.7913},
-        });
+        function initMap() {
+            const map = new google.maps.Map(document.getElementById("map"), {
+                zoom: 13,
+                center: { lat: 31.2518, lng: 34.7913 },
+                mapId: "DEMO_MAP_ID"
+            });
 
-        const issues = [
-            {
-                position: {lat: 31.2519, lng: 34.7915},
-                title: "Broken Traffic Light",
-                description: "The traffic light at the main intersection is not working."
-            },
-            {
-                position: {lat: 31.2500, lng: 34.7900},
-                title: "Pothole",
-                description: "Large pothole near the bus station."
-            }
-        ];
+            const issues = [
+                {
+                    position: { lat: 31.2519, lng: 34.7915 },
+                    title: "🚦 Broken Traffic Light",
+                    description: "The traffic light at the main intersection is not working."
+                },
+                {
+                    position: { lat: 31.2500, lng: 34.7900 },
+                    title: "🕳️ Pothole",
+                    description: "Large pothole near the bus station."
+                }
+            ];
 
-        issues.forEach(issue => {
-            (function() {
+            issues.forEach(issue => {
                 const marker = new google.maps.Marker({
                     position: issue.position,
                     map: map,
@@ -47,7 +77,7 @@
 
                 const infoWindow = new google.maps.InfoWindow({
                     content: `
-                        <div style="font-family: sans-serif;">
+                        <div class="info-box">
                             <strong>${issue.title}</strong><br>
                             <p>${issue.description}</p>
                         </div>`
@@ -56,11 +86,13 @@
                 marker.addListener("click", () => {
                     infoWindow.open(map, marker);
                 });
-            })();
-        });
-    }
+            });
+        }
     </script>
 
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDlCLAutdnujjoTEDdpYwIUvOSTluY2rRQ&callback=initMap" async defer></script>
+    <script
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDlCLAutdnujjoTEDdpYwIUvOSTluY2rRQ&callback=initMap"
+        async defer>
+    </script>
 </body>
 </html>
