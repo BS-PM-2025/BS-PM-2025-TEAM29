@@ -10,5 +10,6 @@ urlpatterns = [
     path('logout/', views.user_logout, name='logout'),
     path('register/', views.register_view, name='register'),
     path('map/', views.map_view, name='map_view'),
+    path('worker-dashboard/', views.worker_dashboard, name='worker_dashboard'), #Ibrahim BSPM25T29-151
 
 ]
