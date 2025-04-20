@@ -96,6 +96,11 @@ def report_list(request):
         'type_dict': type_dict,
     })
 
+#Ibrahim BSPM25T29-151
+@login_required
+def worker_dashboard(request):
+    reports_list = get_reports_from_firebase()
+    return render(request, 'worker_dashboard.html', {'reports': reports_list})
 
 
 def user_login(request):
