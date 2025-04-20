@@ -20,6 +20,26 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+
+def report_list(request):
+    report_type = request.GET.get('type', None)
+    reports_list = get_reports_from_firebase(report_type=report_type)
+
+    for report in reports_list:
+        report['type_name'] = type_dict.get(report.get('type'), 'לא ידוע')
+
+    paginator = Paginator(reports_list, 5)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'report_list.html', {
+        'page_obj': page_obj,
+        'reports_data': reports_list,
+        'type_dict': type_dict,
+    })
+
+
+
 def user_login(request):
     if request.method == 'POST':
         username = request.POST['username']
