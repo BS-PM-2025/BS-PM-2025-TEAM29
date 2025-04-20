@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from firebase_admin import firestore
-from beer_sheva_backend.firebase import initialize_firebase, get_reports_from_firebase
+from beer_sheva_backend.firebase import initialize_firebase, get_reports_from_firebase, get_report_by_id
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
@@ -13,8 +13,16 @@ from .forms import ReportForm, type_dict
 from django.shortcuts import render, redirect
 from .forms import ReportForm
 from beer_sheva_backend.firebase import save_report_to_firebase
-
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import authenticate, login, logout
+from django.contrib import messages
 import logging
+from django.contrib.auth.models import User
+from django.contrib.auth import login
+from django.shortcuts import render, redirect
+from django.contrib import messages
+logger = logging.getLogger(__name__)
+
 
 
 logger = logging.getLogger(__name__)
