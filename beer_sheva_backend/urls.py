@@ -9,5 +9,6 @@ initialize_firebase()
 
 
 urlpatterns = [
-
+    path('admin/', admin.site.urls),
+    path('', include('reports.urls')), 
 ]
