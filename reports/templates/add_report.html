@@ -1,3 +1,5 @@
+<!-- Firas-->
+
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
@@ -6,115 +8,115 @@
     <title>הוספת דיווח</title>
     <link href="https://fonts.googleapis.com/css2?family=David:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.5.0/css/bootstrap.min.css">
-<style>
-    /* General Body Styling */
-    body {
-        font-family: 'Arial', sans-serif;
-        background-color: #f4f6f9;
-        color: #333;
-        margin: 0;
-        padding: 0;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-    }
+    <style>
+        body {
+            font-family: 'David', sans-serif;
+            background: linear-gradient(to right, #e0eafc, #cfdef3);
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding-top: 40px;
+        }
 
-    .container {
-        max-width: 800px;  /* Increase the max width of the container */
-        width: 100%;
-        background-color: #ffffff;
-        padding: 40px; /* Increase padding for a larger container */
-        border-radius: 10px;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    }
-
-    /* Heading Styling */
-    h1 {
-        font-size: 2rem;
-        font-weight: bold;
-        color: #007bff;
-        text-align: center;
-        margin-bottom: 30px;
-    }
-
-    /* Form Group Styling */
-    .form-group {
-        margin-bottom: 1.5rem;
-    }
-
-    .form-label {
-        font-weight: 600;
-        font-size: 1.1rem;
-        color: #555;
-    }
-
-    /* Form Inputs Styling */
-    .form-control {
-        border-radius: 5px;
-        padding: 12px 15px;
-        border: 1px solid #ccc;
-        transition: border 0.3s ease-in-out;
-        font-size: 1rem;
-    }
-
-    .form-control:focus {
-        border-color: #007bff;
-        box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
-    }
-
-    /* Submit Button Styling */
-    .submit-btn {
-        background-color: #007bff;
-        color: white;
-        padding: 12px 25px;
-        font-size: 1.2rem;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        width: 100%;
-        transition: background-color 0.3s ease-in-out;
-    }
-
-    .submit-btn:hover {
-        background-color: #0056b3;
-    }
-
-    .submit-btn:focus {
-        outline: none;
-    }
-
-    /* Error Messages Styling */
-    .error-message {
-        color: #ff4d4d;
-        font-size: 0.9rem;
-        margin-top: 5px;
-    }
-
-    /* Map Styling */
-    #map {
-        width: 100%;
-        height: 400px; /* Increase the height of the map */
-        border-radius: 5px;
-    }
-
-    /* Responsive Breakpoints */
-    @media (max-width: 768px) {
         .container {
-            margin-top: 20px;
-            padding: 20px;
+            max-width: 850px;
+            width: 95%;
+            background-color: #ffffffee;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+            border-top: 8px solid #007bff;
+            animation: fadeIn 0.7s ease-in-out;
         }
 
         h1 {
-            font-size: 1.5rem;
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: #007bff;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: #333;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .form-control {
+            border-radius: 8px;
+            padding: 12px 15px;
+            border: 1px solid #ccc;
+            transition: border 0.3s ease-in-out;
+            font-size: 1rem;
+        }
+
+        .form-control:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 6px rgba(0, 123, 255, 0.3);
         }
 
         .submit-btn {
-            font-size: 1rem;
-            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            padding: 14px 25px;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.3s ease-in-out;
+            font-weight: bold;
         }
-    }
-</style>
+
+        .submit-btn:hover {
+            background-color: #0056b3;
+        }
+
+        .error-message {
+            color: #ff4d4d;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        #map {
+            width: 100%;
+            height: 400px;
+            border-radius: 10px;
+            border: 2px solid #ddd;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+        }
+
+        @keyframes fadeIn {
+            from {opacity: 0; transform: translateY(20px);}
+            to {opacity: 1; transform: translateY(0);}
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.6rem;
+            }
+
+            .submit-btn {
+                font-size: 1rem;
+                padding: 10px;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -122,36 +124,35 @@
         <form method="POST">
             {% csrf_token %}
 
-           <!-- Title Input -->
-<div class="form-group">
-    <label for="title" class="form-label">כותרת</label>
-    <input type="text" class="form-control" name="title" id="title" value="{{ form.title.value|default:'' }}">
-</div>
+            <!-- Title Input -->
+            <div class="form-group">
+                <label for="title" class="form-label">כותרת</label>
+                <input type="text" class="form-control" name="title" id="title" value="{{ form.title.value|default:'' }}">
+            </div>
 
-<!-- Description Input -->
-<div class="form-group">
-    <label for="description" class="form-label">תיאור</label>
-    <textarea class="form-control" name="description" id="description">{{ form.description.value|default:'' }}</textarea>
-</div>
+            <!-- Description Input -->
+            <div class="form-group">
+                <label for="description" class="form-label">תיאור</label>
+                <textarea class="form-control" name="description" id="description">{{ form.description.value|default:'' }}</textarea>
+            </div>
 
-<!-- Location Input -->
-<div class="form-group">
-    <label for="place" class="form-label">מיקום</label>
-    <input type="text" class="form-control" name="place" id="place" value="{{ form.place.value|default:'' }}">
-</div>
+            <!-- Location Input -->
+            <div class="form-group">
+                <label for="place" class="form-label">מיקום</label>
+                <input type="text" class="form-control" name="place" id="place" value="{{ form.place.value|default:'' }}">
+            </div>
 
-<!-- Latitude Input -->
-<div class="form-group">
-    <label for="latitude" class="form-label">קו רוחב</label>
-    <input type="number" class="form-control" name="latitude" id="latitude" value="{{ form.latitude.value|default:'' }}" readonly>
-</div>
+            <!-- Latitude Input -->
+            <div class="form-group">
+                <label for="latitude" class="form-label">קו רוחב</label>
+                <input type="number" class="form-control" name="latitude" id="latitude" value="{{ form.latitude.value|default:'' }}" readonly>
+            </div>
 
-<!-- Longitude Input -->
-<div class="form-group">
-    <label for="longitude" class="form-label">קו אורך</label>
-    <input type="number" class="form-control" name="longitude" id="longitude" value="{{ form.longitude.value|default:'' }}" readonly>
-</div>
-
+            <!-- Longitude Input -->
+            <div class="form-group">
+                <label for="longitude" class="form-label">קו אורך</label>
+                <input type="number" class="form-control" name="longitude" id="longitude" value="{{ form.longitude.value|default:'' }}" readonly>
+            </div>
 
             <!-- Report Type Selection -->
             <div class="form-group">
@@ -164,8 +165,6 @@
                     {% endfor %}
                 </select>
             </div>
-
-
 
             <!-- Map -->
             <div class="form-group">
@@ -180,60 +179,54 @@
         </form>
     </div>
 
-<script>
-    // Initialize the map
-    function initMap() {
-        var beershevaCoords = { lat: 31.2518, lng: 34.7913 }; // Coordinates of Be'er Sheva
+    <script>
+        // Initialize the map
+        function initMap() {
+            var beershevaCoords = { lat: 31.2518, lng: 34.7913 };
 
-        map = new google.maps.Map(document.getElementById('map'), {
-            center: beershevaCoords,
-            zoom: 12,
-            restriction: {
-                latLngBounds: {
-                    north: 31.35, // Northmost point of Be'er Sheva
-                    south: 31.15, // Southmost point of Be'er Sheva
-                    east: 34.95,  // Eastmost point of Be'er Sheva
-                    west: 34.65   // Westmost point of Be'er Sheva
-                },
-                strictBounds: true
-            }
-        });
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: beershevaCoords,
+                zoom: 12,
+                restriction: {
+                    latLngBounds: {
+                        north: 31.35,
+                        south: 31.15,
+                        east: 34.95,
+                        west: 34.65
+                    },
+                    strictBounds: true
+                }
+            });
 
-        marker = new google.maps.Marker({
-            position: beershevaCoords,
-            map: map,
-            draggable: true // Allow the user to drag the marker to choose a location
-        });
+            marker = new google.maps.Marker({
+                position: beershevaCoords,
+                map: map,
+                draggable: true
+            });
 
-        // Update the latitude and longitude when the marker is dragged
-        google.maps.event.addListener(marker, 'dragend', function(event) {
-            document.getElementById('latitude').value = event.latLng.lat();
-            document.getElementById('longitude').value = event.latLng.lng();
-        });
+            // Update the latitude and longitude when the marker is dragged
+            google.maps.event.addListener(marker, 'dragend', function(event) {
+                document.getElementById('latitude').value = event.latLng.lat();
+                document.getElementById('longitude').value = event.latLng.lng();
+            });
 
-        // Allow the user to click on the map to set a new location
-        google.maps.event.addListener(map, 'click', function(event) {
-            var clickedLocation = event.latLng;
+            // Allow the user to click on the map to set a new location
+            google.maps.event.addListener(map, 'click', function(event) {
+                var clickedLocation = event.latLng;
+                marker.setPosition(clickedLocation);
+                document.getElementById('latitude').value = clickedLocation.lat();
+                document.getElementById('longitude').value = clickedLocation.lng();
+            });
+        }
 
-            // Move the marker to the clicked location
-            marker.setPosition(clickedLocation);
+        // Load the Google Maps API with the correct callback
+        function loadMapScript() {
+            var script = document.createElement('script');
+            script.src = "https://maps.googleapis.com/maps/api/js?key=AIzaSyDlCLAutdnujjoTEDdpYwIUvOSTluY2rRQ&callback=initMap";
+            document.body.appendChild(script);
+        }
 
-            // Update the latitude and longitude input fields
-            document.getElementById('latitude').value = clickedLocation.lat();
-            document.getElementById('longitude').value = clickedLocation.lng();
-        });
-    }
-
-    // Load the Google Maps API with the correct callback
-    function loadMapScript() {
-        var script = document.createElement('script');
-        script.src = "https://maps.googleapis.com/maps/api/js?key=AIzaSyDlCLAutdnujjoTEDdpYwIUvOSTluY2rRQ&callback=initMap";
-        document.body.appendChild(script);
-    }
-
-    // Wait until the page is ready to load the script
-    window.onload = loadMapScript;
-</script>
-
+        window.onload = loadMapScript;
+    </script>
 </body>
 </html>
