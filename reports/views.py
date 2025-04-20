@@ -26,7 +26,51 @@ logger = logging.getLogger(__name__)
 
 
 logger = logging.getLogger(__name__)
+def add_report(request):
+    if request.method == 'POST':
+        form = ReportForm(request.POST)
+        if form.is_valid():
+            try:
+                # Save the report to the local database
+                report = form.save()
+                logger.info(f"Report saved successfully: {report}")
 
+                # Extract the data from the form
+                title = form.cleaned_data['title']
+                description = form.cleaned_data['description']
+                location = form.cleaned_data['place']
+                latitude = form.cleaned_data['latitude']
+                longitude = form.cleaned_data['longitude']
+                report_type = form.cleaned_data['type']
+
+                logger.info(f"Extracted data: title={title}, description={description}, "
+                            f"location={location}, latitude={latitude}, longitude={longitude}, type={report_type}")
+
+                # Save the report to Firebase
+                try:
+                    report_id = save_report_to_firebase(title, description, location, latitude, longitude, report_type)
+                    logger.info(f"Report saved to Firebase with ID: {report_id}")
+                except Exception as e:
+                    logger.error(f"Error saving report to Firebase: {e}")
+                    return render(request, 'add_report.html', {'form': form, 'error': 'Error saving to Firebase'})
+
+                # Save the Firebase ID to the report in the local database
+                report.firebase_id = report_id
+                report.save()
+                
+                # Add success message
+                messages.success(request, 'Your report has been submitted successfully!')
+                return redirect('report_confirmation', report_id=report_id)
+
+            except Exception as e:
+                logger.error(f"Error saving the report to local database: {e}")
+                return render(request, 'add_report.html', {'form': form, 'error': 'Error saving the report'})
+        else:
+            logger.warning("Form is not valid.")
+            return render(request, 'add_report.html', {'form': form, 'error': 'Form is invalid'})
+    else:
+        form = ReportForm()
+    return render(request, 'add_report.html', {'form': form})
 
 
 def report_list(request):
