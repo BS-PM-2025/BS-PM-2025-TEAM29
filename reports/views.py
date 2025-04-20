@@ -72,6 +72,12 @@ def add_report(request):
         form = ReportForm()
     return render(request, 'add_report.html', {'form': form})
 
+#Ibrahim BSPM25T29-3
+def report_confirmation(request, report_id):
+    report = get_report_by_id(report_id)
+    if not report:
+        return redirect('report_list')
+    return render(request, 'confirmation.html', {'report': report})
 
 def report_list(request):
     report_type = request.GET.get('type', None)
