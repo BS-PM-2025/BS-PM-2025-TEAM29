@@ -1,15 +1,84 @@
 <!DOCTYPE html>
-<html>
+<html lang="ar" dir="rtl">
 <head>
-    <title>Login</title>
+    <meta charset="UTF-8">
+    <title>UrbaneEye</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(to right, #e0eafc, #cfdef3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            color: #333;
+        }
+
+        .login-box {
+            background-color: #ffffffee;
+            padding: 2.5em;
+            border-radius: 16px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            width: 340px;
+            text-align: center;
+            border-top: 6px solid #007bff;
+        }
+
+        .login-box h2 {
+            margin-bottom: 1.5em;
+            font-size: 1.8em;
+            color: #007bff;
+        }
+
+        input[type="text"], input[type="password"] {
+            width: 90%;
+            padding: 0.8em;
+            margin-bottom: 1em;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus {
+            border-color: #007bff;
+            outline: none;
+            box-shadow: 0 0 5px rgba(0,123,255,0.3);
+        }
+
+        button {
+            background-color: #007bff;
+            border: none;
+            padding: 0.8em 1.2em;
+            border-radius: 8px;
+            color: white;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            width: 100%;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        ::placeholder {
+            color: #aaa;
+        }
+    </style>
 </head>
 <body>
-    <h2>Login</h2>
-    <form method="post">
-        {% csrf_token %}
-        <input type="text" name="username" placeholder="Username" required>
-        <input type="password" name="password" placeholder="Password" required>
-        <button type="submit">Login</button>
-    </form>
+    <div class="login-box">
+        <h2>تسجيل الدخول</h2>
+        <form method="post">
+            {% csrf_token %}
+            <input type="text" name="username" placeholder="username" required>
+            <input type="password" name="password" placeholder="Password" required>
+            <button type="submit">Enter</button>
+        </form>
+    </div>
 </body>
 </html>
