@@ -1,0 +1,151 @@
+<!-- Ibrahim BSPM25T29-151 -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Worker Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.0/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f4f7fa;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #2c3e50;
+        }
+
+        #map {
+            height: 500px;
+            width: 100%;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border: 2px solid #ddd;
+        }
+
+        table {
+            width: 100%;
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        th, td {
+            text-align: center;
+            padding: 14px;
+        }
+
+        thead {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .status-open {
+            color: #e67e22;
+            font-weight: bold;
+        }
+
+        .status-progress {
+            color: #f39c12;
+            font-weight: bold;
+        }
+
+        .btn-direction {
+            background-color: #28a745;
+            color: white;
+            padding: 8px 14px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .btn-direction:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <h2>Worker Dashboard</h2>
+
+    <!-- Map -->
+    <div id="map"></div>
+
+    <!-- Task Table -->
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Type</th>
+                <th>Location</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Broken Light</td>
+                <td>Electrical</td>
+                <td>Main Street</td>
+                <td><span class="status-open">Open</span></td>
+                <td>
+                    <a class="btn-direction" href="https://www.google.com/maps/dir/?api=1&destination=31.2520,34.7910" target="_blank">
+                        Get Directions
+                    </a>
+                </td>
+            </tr>
+            <tr>
+                <td>Flooded Area</td>
+                <td>Water</td>
+                <td>River Rd</td>
+                <td><span class="status-progress">In Progress</span></td>
+                <td>
+                    <a class="btn-direction" href="https://www.google.com/maps/dir/?api=1&destination=31.2505,34.7905" target="_blank">
+                        Get Directions
+                    </a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <script>
+        function initMap() {
+            var center = { lat: 31.2518, lng: 34.7913 };
+            var map = new google.maps.Map(document.getElementById("map"), {
+                center: center,
+                zoom: 13
+            });
+
+            // Sample markers
+            const locations = [
+                { lat: 31.2520, lng: 34.7910, title: "Broken Light" },
+                { lat: 31.2505, lng: 34.7905, title: "Flooded Area" }
+            ];
+
+            locations.forEach(loc => {
+                new google.maps.Marker({
+                    position: { lat: loc.lat, lng: loc.lng },
+                    map: map,
+                    title: loc.title
+                });
+            });
+        }
+
+        function loadMapScript() {
+            var script = document.createElement('script');
+            script.src = "https://maps.googleapis.com/maps/api/js?key=AIzaSyDlCLAutdnujjoTEDdpYwIUvOSTluY2rRQ&callback=initMap";
+            script.async = true;
+            script.defer = true;
+            document.body.appendChild(script);
+        }
+
+        window.onload = loadMapScript;
+    </script>
+</body>
+</html>
