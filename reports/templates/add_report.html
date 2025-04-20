@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>הוספת דיווח</title>
+    <link href="https://fonts.googleapis.com/css2?family=David:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.5.0/css/bootstrap.min.css">
+<style>
+    /* General Body Styling */
+    body {
+        font-family: 'Arial', sans-serif;
+        background-color: #f4f6f9;
+        color: #333;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+
+    .container {
+        max-width: 800px;  /* Increase the max width of the container */
+        width: 100%;
+        background-color: #ffffff;
+        padding: 40px; /* Increase padding for a larger container */
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Heading Styling */
+    h1 {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #007bff;
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    /* Form Group Styling */
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        font-weight: 600;
+        font-size: 1.1rem;
+        color: #555;
+    }
+
+    /* Form Inputs Styling */
+    .form-control {
+        border-radius: 5px;
+        padding: 12px 15px;
+        border: 1px solid #ccc;
+        transition: border 0.3s ease-in-out;
+        font-size: 1rem;
+    }
+
+    .form-control:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+    }
+
+    /* Submit Button Styling */
+    .submit-btn {
+        background-color: #007bff;
+        color: white;
+        padding: 12px 25px;
+        font-size: 1.2rem;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        width: 100%;
+        transition: background-color 0.3s ease-in-out;
+    }
+
+    .submit-btn:hover {
+        background-color: #0056b3;
+    }
+
+    .submit-btn:focus {
+        outline: none;
+    }
+
+    /* Error Messages Styling */
+    .error-message {
+        color: #ff4d4d;
+        font-size: 0.9rem;
+        margin-top: 5px;
+    }
+
+    /* Map Styling */
+    #map {
+        width: 100%;
+        height: 400px; /* Increase the height of the map */
+        border-radius: 5px;
+    }
+
+    /* Responsive Breakpoints */
+    @media (max-width: 768px) {
+        .container {
+            margin-top: 20px;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+        }
+
+        .submit-btn {
+            font-size: 1rem;
+            padding: 10px;
+        }
+    }
+</style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center mb-4">הוספת דיווח</h1>
+        <form method="POST">
+            {% csrf_token %}
+
+           <!-- Title Input -->
+<div class="form-group">
+    <label for="title" class="form-label">כותרת</label>
+    <input type="text" class="form-control" name="title" id="title" value="{{ form.title.value|default:'' }}">
+</div>
+
+<!-- Description Input -->
+<div class="form-group">
+    <label for="description" class="form-label">תיאור</label>
+    <textarea class="form-control" name="description" id="description">{{ form.description.value|default:'' }}</textarea>
+</div>
+
+<!-- Location Input -->
+<div class="form-group">
+    <label for="place" class="form-label">מיקום</label>
+    <input type="text" class="form-control" name="place" id="place" value="{{ form.place.value|default:'' }}">
+</div>
+
+<!-- Latitude Input -->
+<div class="form-group">
+    <label for="latitude" class="form-label">קו רוחב</label>
+    <input type="number" class="form-control" name="latitude" id="latitude" value="{{ form.latitude.value|default:'' }}" readonly>
+</div>
+
+<!-- Longitude Input -->
+<div class="form-group">
+    <label for="longitude" class="form-label">קו אורך</label>
+    <input type="number" class="form-control" name="longitude" id="longitude" value="{{ form.longitude.value|default:'' }}" readonly>
+</div>
+
+
+            <!-- Report Type Selection -->
+            <div class="form-group">
+                <label for="type" class="form-label">סוג דיווח</label>
+                <select name="type" id="type" class="form-control">
+                    {% for value, label in form.type.field.choices %}
+                        <option value="{{ value }}" {% if form.type.value == value %} selected {% endif %}>
+                            {{ label }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+
+
+            <!-- Map -->
+            <div class="form-group">
+                <label for="map" class="form-label">בחר מיקום על המפה</label>
+                <div id="map"></div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="form-group text-center">
+                <button type="submit" class="submit-btn">שלח דיווח</button>
+            </div>
+        </form>
+    </div>
+
+<script>
+    // Initialize the map
+    function initMap() {
+        var beershevaCoords = { lat: 31.2518, lng: 34.7913 }; // Coordinates of Be'er Sheva
+
+        map = new google.maps.Map(document.getElementById('map'), {
+            center: beershevaCoords,
+            zoom: 12,
+            restriction: {
+                latLngBounds: {
+                    north: 31.35, // Northmost point of Be'er Sheva
+                    south: 31.15, // Southmost point of Be'er Sheva
+                    east: 34.95,  // Eastmost point of Be'er Sheva
+                    west: 34.65   // Westmost point of Be'er Sheva
+                },
+                strictBounds: true
+            }
+        });
+
+        marker = new google.maps.Marker({
+            position: beershevaCoords,
+            map: map,
+            draggable: true // Allow the user to drag the marker to choose a location
+        });
+
+        // Update the latitude and longitude when the marker is dragged
+        google.maps.event.addListener(marker, 'dragend', function(event) {
+            document.getElementById('latitude').value = event.latLng.lat();
+            document.getElementById('longitude').value = event.latLng.lng();
+        });
+
+        // Allow the user to click on the map to set a new location
+        google.maps.event.addListener(map, 'click', function(event) {
+            var clickedLocation = event.latLng;
+
+            // Move the marker to the clicked location
+            marker.setPosition(clickedLocation);
+
+            // Update the latitude and longitude input fields
+            document.getElementById('latitude').value = clickedLocation.lat();
+            document.getElementById('longitude').value = clickedLocation.lng();
+        });
+    }
+
+    // Load the Google Maps API with the correct callback
+    function loadMapScript() {
+        var script = document.createElement('script');
+        script.src = "https://maps.googleapis.com/maps/api/js?key=AIzaSyDlCLAutdnujjoTEDdpYwIUvOSTluY2rRQ&callback=initMap";
+        document.body.appendChild(script);
+    }
+
+    // Wait until the page is ready to load the script
+    window.onload = loadMapScript;
+</script>
+
+</body>
+</html>
