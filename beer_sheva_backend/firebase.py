@@ -21,8 +21,26 @@ def initialize_firebase():
 
     return firestore.client()
 
+#Firas BSPM25T29-16
+def save_report_to_firebase(title, description, location, latitude, longitude, report_type):
+    db = firestore.client()  
 
+    created_at = datetime.datetime.utcnow()
 
+    report_ref = db.collection('Reports').add({
+        'title': title,
+        'description': description,
+        'location': location,
+        'latitude': latitude,
+        'longitude': longitude,
+        'created_at': created_at, 
+        'type': report_type,  
+        'status': 'pending'  
+    })
+
+    report_id = report_ref[1].id  
+
+    return report_id
 #Malik BSPM25T29-18
 def get_reports_from_firebase(report_type=None, user_location=None, radius=None):
     """
