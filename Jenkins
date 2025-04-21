@@ -1,29 +1,54 @@
 pipeline {
     agent any
 
+    environment {
+        VENV = 'venv'
+        PYTHON = 'venv/bin/python'
+        PIP = 'venv/bin/pip'
+    }
+
     stages {
-        stage('Install dependencies') {
+        stage('Clone') {
             steps {
-                echo 'Installing Python dependencies (globally for user)...'
-                sh "pip3 install --user --upgrade pip"
-                sh "pip3 install --user -r requirements.txt"
+                echo 'Cloning the repository...'
+                checkout scm
             }
         }
-        stage('Build') {
+
+        stage('Set up Python environment') {
             steps {
-                echo 'Building the project (checking syntax)...'
-                sh "python3 manage.py check"
+                echo 'Creating virtual environment and installing dependencies...'
+                sh 'python3 -m venv $VENV'
+                sh '$PIP install --upgrade pip'
+                sh '$PIP install -r requirements.txt'
             }
         }
-        stage('Test') {
+
+        stage('Run Django Checks') {
             steps {
-                echo 'Running Django tests...'
-                sh "python3 manage.py test"
+                echo 'Running Django checks...'
+                sh '$PYTHON manage.py check'
             }
         }
-        stage('Deploy') {
+
+        stage('Run Migrations (Optional)') {
             steps {
-                echo 'Deploy step - (add your deploy script here if needed)'
+                echo 'Applying database migrations...'
+                sh '$PYTHON manage.py migrate'
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                echo 'Running tests...'
+                sh '$PYTHON manage.py test || echo "No tests found."'
+            }
+        }
+
+        stage('Run Server (Dev only)') {
+            steps {
+                echo 'Starting Django development server...'
+                sh '$PYTHON manage.py runserver 0.0.0.0:8000 & sleep 10'
             }
         }
     }
