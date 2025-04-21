@@ -11,5 +11,6 @@ urlpatterns = [
     path('register/', views.register_view, name='register'),
     path('map/', views.map_view, name='map_view'),
     path('worker-dashboard/', views.worker_dashboard, name='worker_dashboard'), #Ibrahim BSPM25T29-151
+    path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'), #Abed BSPM25T29-17
 
 ]
