@@ -21,11 +21,10 @@ from django.contrib.auth.models import User
 from django.contrib.auth import login
 from django.shortcuts import render, redirect
 from django.contrib import messages
-logger = logging.getLogger(__name__)
-
-
 
 logger = logging.getLogger(__name__)
+
+
 def add_report(request):
     if request.method == 'POST':
         form = ReportForm(request.POST)
