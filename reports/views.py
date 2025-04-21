@@ -102,6 +102,12 @@ def worker_dashboard(request):
     return render(request, 'worker_dashboard.html', {'reports': reports_list})
 
 
+#Abed BSPM25T29-17
+@login_required
+def admin_dashboard(request):
+    reports_list = get_reports_from_firebase()
+    return render(request, 'admin_dashboard.html', {'reports': reports_list})
+
 
 
 
