@@ -1,6 +1,12 @@
 pipeline {
     agent any
-    
+
+    environment {
+        VENV = 'venv'
+        PYTHON = 'venv/bin/python'
+        PIP = 'venv/bin/pip'
+    }
+
     stages {
         stage('Clone') {
             steps {
@@ -9,31 +15,40 @@ pipeline {
             }
         }
 
+        stage('Set up Python environment') {
+            steps {
+                echo 'Creating virtual environment and installing dependencies...'
+                sh 'python3 -m venv $VENV'
+                sh '$PIP install --upgrade pip'
+                sh '$PIP install -r requirements.txt'
+            }
+        }
+
         stage('Run Django Checks') {
             steps {
                 echo 'Running Django checks...'
-                sh 'python3 manage.py check'
+                sh '$PYTHON manage.py check'
             }
         }
 
         stage('Run Migrations (Optional)') {
             steps {
                 echo 'Applying database migrations...'
-                sh 'python3 manage.py migrate'
+                sh '$PYTHON manage.py migrate'
             }
         }
 
         stage('Run Tests') {
             steps {
                 echo 'Running tests...'
-                sh 'python3 manage.py test || echo "No tests found."'
+                sh '$PYTHON manage.py test || echo "No tests found."'
             }
         }
 
         stage('Run Server (Dev only)') {
             steps {
                 echo 'Starting Django development server...'
-                sh 'python3 manage.py runserver 0.0.0.0:8000 & sleep 10'
+                sh '$PYTHON manage.py runserver 0.0.0.0:8000 & sleep 10'
             }
         }
     }
