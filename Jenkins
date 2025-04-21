@@ -1,52 +1,40 @@
 pipeline {
-     agent any
- 
-     environment {
-         VENV = 'venv'
-     }
- 
-     stages {
-         stage('Clone') {
-             steps {
-                 echo 'Cloning the repository...'
-                 checkout scm
-             }
-         }
- 
-         stage('Set up Python environment') {
-             steps {
-                 echo 'Creating virtual environment and installing dependencies...'
-                 sh 'python3 -m venv $VENV'
-                 sh '. $VENV/bin/activate && pip install --upgrade pip && pip install -r requirements.txt'
-             }
-         }
- 
-         stage('Run Django Checks') {
-             steps {
-                 echo 'Running Django checks...'
-                 sh '. $VENV/bin/activate && python manage.py check'
-             }
-         }
- 
-         stage('Run Migrations (Optional)') {
-             steps {
-                 echo 'Applying database migrations...'
-                 sh '. $VENV/bin/activate && python manage.py migrate'
-             }
-         }
- 
-         stage('Run Tests') {
-             steps {
-                 echo 'Running tests...'
-                 sh '. $VENV/bin/activate && python manage.py test || echo "No tests found."'
-             }
-         }
- 
-         stage('Run Server (Dev only)') {
-             steps {
-                 echo 'Starting Django development server...'
-                 sh '. $VENV/bin/activate && python manage.py runserver 0.0.0.0:8000 & sleep 10'
-             }
-         }
-     }
- }
+    agent any
+    
+    stages {
+        stage('Clone') {
+            steps {
+                echo 'Cloning the repository...'
+                checkout scm
+            }
+        }
+
+        stage('Run Django Checks') {
+            steps {
+                echo 'Running Django checks...'
+                sh 'python3 manage.py check'
+            }
+        }
+
+        stage('Run Migrations (Optional)') {
+            steps {
+                echo 'Applying database migrations...'
+                sh 'python3 manage.py migrate'
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                echo 'Running tests...'
+                sh 'python3 manage.py test || echo "No tests found."'
+            }
+        }
+
+        stage('Run Server (Dev only)') {
+            steps {
+                echo 'Starting Django development server...'
+                sh 'python3 manage.py runserver 0.0.0.0:8000 & sleep 10'
+            }
+        }
+    }
+}
