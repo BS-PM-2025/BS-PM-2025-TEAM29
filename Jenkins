@@ -1,68 +1,52 @@
 pipeline {
-    agent any
-
-    environment {
-        VENV = 'venv'
-    }
-
-    stages {
-        stage('Clone') {
-            steps {
-                echo 'Cloning the repository...'
-                checkout scm
-            }
-        }
-
-        stage('Install system dependencies') {
-            steps {
-                echo 'Installing system packages...'
-                sh '''
-                    set -e
-                    sudo apt-get update
-                    sudo apt-get install -y python3-venv python3-pip
-                '''
-            }
-        }
-
-        stage('Set up Python environment') {
-            steps {
-                echo 'Creating virtual environment and installing dependencies...'
-                sh '''
-                    set -e
-                    python3 -m venv $VENV
-                    . $VENV/bin/activate
-                    pip install --upgrade pip
-                    pip install -r requirements.txt
-                '''
-            }
-        }
-
-        stage('Run Django Checks') {
-            steps {
-                echo 'Running Django checks...'
-                sh 'set -e && . $VENV/bin/activate && python manage.py check'
-            }
-        }
-
-        stage('Run Migrations (Optional)') {
-            steps {
-                echo 'Applying database migrations...'
-                sh 'set -e && . $VENV/bin/activate && python manage.py migrate'
-            }
-        }
-
-        stage('Run Tests') {
-            steps {
-                echo 'Running tests...'
-                sh 'set -e && . $VENV/bin/activate && python manage.py test || echo "No tests found."'
-            }
-        }
-
-        stage('Run Server (Dev only)') {
-            steps {
-                echo 'Starting Django development server...'
-                sh 'set -e && . $VENV/bin/activate && python manage.py runserver 0.0.0.0:8000 & sleep 10'
-            }
-        }
-    }
-}
+     agent any
+ 
+     environment {
+         VENV = 'venv'
+     }
+ 
+     stages {
+         stage('Clone') {
+             steps {
+                 echo 'Cloning the repository...'
+                 checkout scm
+             }
+         }
+ 
+         stage('Set up Python environment') {
+             steps {
+                 echo 'Creating virtual environment and installing dependencies...'
+                 sh 'python3 -m venv $VENV'
+                 sh '. $VENV/bin/activate && pip install --upgrade pip && pip install -r requirements.txt'
+             }
+         }
+ 
+         stage('Run Django Checks') {
+             steps {
+                 echo 'Running Django checks...'
+                 sh '. $VENV/bin/activate && python manage.py check'
+             }
+         }
+ 
+         stage('Run Migrations (Optional)') {
+             steps {
+                 echo 'Applying database migrations...'
+                 sh '. $VENV/bin/activate && python manage.py migrate'
+             }
+         }
+ 
+         stage('Run Tests') {
+             steps {
+                 echo 'Running tests...'
+                 sh '. $VENV/bin/activate && python manage.py test || echo "No tests found."'
+             }
+         }
+ 
+         stage('Run Server (Dev only)') {
+             steps {
+                 echo 'Starting Django development server...'
+                 sh '. $VENV/bin/activate && python manage.py runserver 0.0.0.0:8000 & sleep 10'
+             }
+         }
+     }
+ }
