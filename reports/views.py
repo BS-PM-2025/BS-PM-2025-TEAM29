@@ -21,8 +21,11 @@ from django.contrib.auth.models import User
 from django.contrib.auth import login
 from django.shortcuts import render, redirect
 from django.contrib import messages
+
 logger = logging.getLogger(__name__)
 
+
+# Firas BSPM25T29-16
 def add_report(request):
     if request.method == 'POST':
         form = ReportForm(request.POST)
@@ -54,7 +57,7 @@ def add_report(request):
                 # Save the Firebase ID to the report in the local database
                 report.firebase_id = report_id
                 report.save()
-                
+
                 # Add success message
                 messages.success(request, 'Your report has been submitted successfully!')
                 return redirect('report_confirmation', report_id=report_id)
@@ -69,13 +72,16 @@ def add_report(request):
         form = ReportForm()
     return render(request, 'add_report.html', {'form': form})
 
-#Ibrahim BSPM25T29-3
+
+# Ibrahim BSPM25T29-3
 def report_confirmation(request, report_id):
     report = get_report_by_id(report_id)
     if not report:
         return redirect('report_list')
     return render(request, 'confirmation.html', {'report': report})
 
+
+# Malik
 def report_list(request):
     report_type = request.GET.get('type', None)
     reports_list = get_reports_from_firebase(report_type=report_type)
@@ -93,13 +99,28 @@ def report_list(request):
         'type_dict': type_dict,
     })
 
-#Ibrahim BSPM25T29-151
+
+# Malik
+def map_view(request):
+    reports_list = get_reports_from_firebase()
+    return render(request, 'map.html', {'reports': reports_list})
+
+
+# Abed BSPM25T29-17
+@login_required
+def admin_dashboard(request):
+    reports_list = get_reports_from_firebase()
+    return render(request, 'admin_dashboard.html', {'reports': reports_list})
+
+
+# Ibrahim BSPM25T29-151
 @login_required
 def worker_dashboard(request):
     reports_list = get_reports_from_firebase()
     return render(request, 'worker_dashboard.html', {'reports': reports_list})
 
 
+# Malik
 def user_login(request):
     if request.method == 'POST':
         username = request.POST['username']
@@ -113,6 +134,7 @@ def user_login(request):
     return render(request, 'login.html')
 
 
+# Malik
 def register_view(request):
     if request.method == 'POST':
         username = request.POST['username']
@@ -128,12 +150,13 @@ def register_view(request):
             return redirect('register')
 
         user = User.objects.create_user(username=username, password=password)
-        login(request, user)  # auto-login after register
+        login(request, user)
         return redirect('report_list')
 
     return render(request, 'register.html')
 
 
+# Malik
 def user_logout(request):
     logout(request)
     return redirect('report_list')
