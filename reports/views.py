@@ -103,6 +103,15 @@ def worker_dashboard(request):
     return render(request, 'worker_dashboard.html', {'reports': reports_list})
 
 
+
+
+
+def map_view(request):
+    reports_list = get_reports_from_firebase()
+    return render(request, 'map.html', {'reports': reports_list})
+
+
+
 def user_login(request):
     if request.method == 'POST':
         username = request.POST['username']
