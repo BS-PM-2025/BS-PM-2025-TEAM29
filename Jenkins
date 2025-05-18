@@ -8,9 +8,17 @@ pipeline {
     }
 
     stages {
+        stage('Setup venv') {
+            steps {
+                echo 'Setting up virtualenv...'
+                sh 'rm -rf venv'            // Remove any old/broken venv
+                sh 'python3 -m venv venv'   // Create a new venv
+            }
+        }
         stage('Install dependencies') {
             steps {
                 echo 'Installing Python dependencies...'
+                sh "${PIP} install --upgrade pip"
                 sh "${PIP} install -r requirements.txt"
             }
         }
