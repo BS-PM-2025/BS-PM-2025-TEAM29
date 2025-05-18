@@ -1,37 +1,24 @@
 pipeline {
     agent any
 
-    environment {
-        VENV_DIR = "./venv"
-        PIP = "${VENV_DIR}/bin/pip"
-        PYTHON = "${VENV_DIR}/bin/python"
-    }
-
     stages {
-        stage('Setup venv') {
-            steps {
-                echo 'Setting up virtualenv...'
-                sh 'rm -rf venv'            // Remove any old/broken venv
-                sh 'python3 -m venv venv'   // Create a new venv
-            }
-        }
         stage('Install dependencies') {
             steps {
-                echo 'Installing Python dependencies...'
-                sh "${PIP} install --upgrade pip"
-                sh "${PIP} install -r requirements.txt"
+                echo 'Installing Python dependencies (globally for user)...'
+                sh "pip3 install --user --upgrade pip"
+                sh "pip3 install --user -r requirements.txt"
             }
         }
         stage('Build') {
             steps {
                 echo 'Building the project (checking syntax)...'
-                sh "${PYTHON} manage.py check"
+                sh "python3 manage.py check"
             }
         }
         stage('Test') {
             steps {
                 echo 'Running Django tests...'
-                sh "${PYTHON} manage.py test"
+                sh "python3 manage.py test"
             }
         }
         stage('Deploy') {
