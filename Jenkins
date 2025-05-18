@@ -1,20 +1,37 @@
 pipeline {
     agent any
 
+    environment {
+        // Activate your venv if you want, or use system python if set up in Jenkins
+        VENV_DIR = "./venv"
+        PIP = "${VENV_DIR}/Scripts/pip.exe" // For Windows, PyCharm default
+        PYTHON = "${VENV_DIR}/Scripts/python.exe"
+        // On Linux, use: "${VENV_DIR}/bin/pip" and "${VENV_DIR}/bin/python"
+    }
+
     stages {
+        stage('Install dependencies') {
+            steps {
+                echo 'Installing Python dependencies...'
+                bat "${PIP} install -r requirements.txt"
+            }
+        }
         stage('Build') {
             steps {
-                echo 'Building..'
+                echo 'Building the project (checking syntax)...'
+                bat "${PYTHON} manage.py check"
             }
         }
         stage('Test') {
             steps {
-                echo 'Testing..'
+                echo 'Running Django tests...'
+                bat "${PYTHON} manage.py test"
             }
         }
         stage('Deploy') {
             steps {
-                echo 'Deploying....'
+                echo 'Deploy step - (add your deploy script here if needed)'
+                // You can put real deploy commands here
             }
         }
     }
