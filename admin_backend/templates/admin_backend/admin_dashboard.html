@@ -60,7 +60,16 @@
     <button type="submit">שייך</button>
   </form>
 </td>
-
+<td>
+  {{ report.status }}
+  <form method="post" style="margin-top:4px;">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="update_status">
+    <input type="hidden" name="report_id" value="{{ report.id }}">
+    <input type="text" name="status" placeholder="סטטוס חדש" required>
+    <button type="submit">עדכן</button>
+  </form>
+</td>
       </tr>
       {% endfor %}
     </tbody>
