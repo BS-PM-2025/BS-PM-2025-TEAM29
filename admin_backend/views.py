@@ -1,4 +1,4 @@
-# //Malik - Sprint 2 - Admin - BSPM25T29-26
+# //Malik - Sprint 2 - Admin - BSPM25T29-XX
 from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
 from beer_sheva_backend.firebase import initialize_firebase
@@ -14,7 +14,6 @@ def admin_dashboard(request):
         if action == "delete_report":
             db.collection("Reports").document(report_id).delete()
 
-        # Add assign worker logic here
         if action == "assign_worker":
             worker_inner_id = request.POST.get("worker_id")
             if worker_inner_id:
@@ -29,6 +28,12 @@ def admin_dashboard(request):
                             jobs.append({"report_id": report_id, "role": "worker"})
                             user_ref.update({"jobs": jobs})
                         break
+
+        # New: Update status
+        if action == "update_status":
+            new_status = request.POST.get("status")
+            if new_status:
+                db.collection("Reports").document(report_id).update({"status": new_status})
 
         return redirect("admin-firebase-reports")
 
