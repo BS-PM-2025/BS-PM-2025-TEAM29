@@ -13,3 +13,4 @@ urlpatterns = [
     path('logout/', views.user_logout, name='logout'), #Malik
     path('register/', views.register_view, name='register'), #Malik
 ]
+//
