@@ -1,0 +1,49 @@
+<!-- //Malik - Sprint 2 - Admin - BSPM25T29-7 -->
+<!DOCTYPE html>
+<html lang="he">
+<head>
+  <meta charset="UTF-8">
+  <title>ניהול דיווחים | Admin Dashboard</title>
+  <style>
+    body { font-family: 'Segoe UI', sans-serif; background: #f4f4f4; margin: 0; padding: 40px;}
+    h1 { color: #252525; margin-bottom: 30px;}
+    table { width: 100%; background: #fff; border-collapse: collapse; border-radius: 10px; overflow: hidden; }
+    th, td { padding: 14px 8px; border-bottom: 1px solid #ececec; text-align: center; }
+    th { background: #f2e2ff; }
+    tr:last-child td { border-bottom: none; }
+    button { padding: 5px 12px; border-radius: 5px; border: none; background: #e74c3c; color: #fff; font-weight: bold; cursor: pointer; margin: 2px 0;}
+    form { display: inline; }
+    td.actions { min-width: 100px;}
+  </style>
+</head>
+<body dir="rtl">
+  <h1>ניהול דיווחים</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>כותרת (Title)</th>
+        <th>סטטוס (Status)</th>
+        <th>פעולות</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for report in reports %}
+      <tr>
+        <td>{{ report.id }}</td>
+        <td>{{ report.title }}</td>
+        <td>{{ report.status }}</td>
+        <td class="actions">
+          <form method="post" onsubmit="return confirm('אתה בטוח? זה ימחק את הדיווח לצמיתות.');">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="delete_report">
+            <input type="hidden" name="report_id" value="{{ report.id }}">
+            <button type="submit">🗑 מחק</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</body>
+</html>
