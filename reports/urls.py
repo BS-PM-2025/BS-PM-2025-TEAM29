@@ -1,6 +1,7 @@
 # reports/urls.py
 from django.urls import path
 from . import views
+from admin_backend import views as admin_views
 
 urlpatterns = [
     path('', views.report_list, name='report_list'), #Malik
@@ -12,5 +13,10 @@ urlpatterns = [
     path('login/', views.user_login, name='login'), #Malik
     path('logout/', views.user_logout, name='logout'), #Malik
     path('register/', views.register_view, name='register'), #Malik
+
+
+    path("admin/dashboard/", admin_views.admin_dashboard, name="admin-firebase-reports"),
+
+    
 ]
 //
