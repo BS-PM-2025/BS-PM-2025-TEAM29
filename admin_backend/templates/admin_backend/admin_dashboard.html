@@ -41,6 +41,26 @@
             <button type="submit">🗑 מחק</button>
           </form>
         </td>
+        <td>
+  {% if report.assigned_worker_id %}
+    <span class="worker-current">{{ report.assigned_worker_id }}</span>
+  {% else %}
+    <span class="worker-current">לא שובץ</span>
+  {% endif %}
+  <form method="post" style="margin-top:4px;">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="assign_worker">
+    <input type="hidden" name="report_id" value="{{ report.id }}">
+    <select name="worker_id" required>
+      <option value="">בחר עובד</option>
+      {% for user in users %}
+        <option value="{{ user.id }}">{{ user.id }} | {{ user.email }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit">שייך</button>
+  </form>
+</td>
+
       </tr>
       {% endfor %}
     </tbody>
