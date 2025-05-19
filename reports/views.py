@@ -228,7 +228,7 @@ def user_login(request):
             return redirect("login")
 
     return render(request, "login.html")
-@login_required
+
 
 def register_view(request):
     if request.method == "POST":
