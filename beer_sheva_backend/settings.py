@@ -1,3 +1,4 @@
+# beer_sheva_backend/settings.py
 from pathlib import Path
 import os
 from beer_sheva_backend.firebase import initialize_firebase
@@ -15,7 +16,7 @@ ALLOWED_HOSTS = []
 
 # Firebase settings (you can move these to a separate file if necessary)
 FIREBASE_CREDENTIALS_PATH = os.path.join(BASE_DIR, 'reports_database.json')
-
+FIREBASE_WEB_API_KEY = 'AIzaSyAddVUXueGIT9uwIkeWRzZ9FuQnn3JIhPI'
 
 
 
@@ -29,7 +30,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',  # REST API Framework
-    'reports',  # Your custom app
+    'reports',
+    'user',
 ]
 
 MIDDLEWARE = [
