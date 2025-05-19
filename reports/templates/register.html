@@ -1,4 +1,4 @@
-<!-- Malik -->
+    <!-- Malik -->
 
 <!DOCTYPE html>
 <html lang="en">
@@ -78,12 +78,43 @@
     <div class="register-box">
         <h2>Register</h2>
         <form method="post">
-            {% csrf_token %}
-            <input type="text" name="username" placeholder="Username" required>
-            <input type="password" name="password" placeholder="Password" required>
-            <input type="password" name="confirm_password" placeholder="Confirm Password" required>
-            <button type="submit">Register</button>
-        </form>
+  {% csrf_token %}
+  <input type="text"   name="username"         placeholder="Username" required>
+  <input type="password" name="password"        placeholder="Password" required>
+  <input type="password" name="confirm_password" placeholder="Confirm Password" required>
+
+  <p>Register as:</p>
+  <label><input type="radio" name="user_type" value="user"   checked> Regular User</label>
+  <label><input type="radio" name="user_type" value="worker"> Worker</label>
+
+  <div id="job-field" style="display:none; margin:10px 0;">
+  <select name="job" style="text-align-last: right">
+    <option value="">— Select your job —</option>
+    <option value="police">משטרה</option>
+    <option value="electrical">חשמלאי</option>
+    <option value="gardener">גננות</option>
+    <option value="street_worker">עובדי כביש</option>
+    <option value="janitor">עובד ניקיון</option>
+    <option value="maintenance">איש תחזוקה</option>
+    <option value="plumber">אינסטלור</option>
+      <option value="nature reserver">שומרי טבע</option>
+  </select>
+</div>
+
+
+
+  <button type="submit">Register</button>
+</form>
+
+<script>
+  document.querySelectorAll('input[name="user_type"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      document.getElementById('job-field').style.display =
+        radio.value === 'worker' && radio.checked ? 'block' : 'none';
+    });
+  });
+</script>
+
 
         {% if messages %}
             <ul>
