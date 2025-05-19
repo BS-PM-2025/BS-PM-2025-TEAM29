@@ -1,10 +1,10 @@
-<!-- Ibrahim BSPM25T29-151 -->
+<!-- reports/templates/worker_dashboard.html -->
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Worker Dashboard</title>
+    <title>Worker Dashboard – {{ job_label }}</title>
     <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.0/css/bootstrap.min.css">
     <style>
@@ -14,13 +14,36 @@
             margin: 0;
             padding: 20px;
         }
-
         h2 {
             text-align: center;
             margin-bottom: 30px;
             color: #2c3e50;
         }
-
+        /* Notifications box */
+        .notif-box {
+            background: #fff8c4;
+            padding: 1em 1.5em;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border: 1px solid #f0e68c;
+        }
+        .notif-box h3 {
+            margin-top: 0;
+            color: #a67c00;
+        }
+        .notif-box ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .notif-box li {
+            background: #fff;
+            border: 1px solid #f0e68c;
+            padding: 0.5em;
+            margin-bottom: 0.5em;
+            border-radius: 4px;
+        }
+        /* Map styling */
         #map {
             height: 500px;
             width: 100%;
@@ -28,7 +51,7 @@
             margin-bottom: 30px;
             border: 2px solid #ddd;
         }
-
+        /* Table styling */
         table {
             width: 100%;
             background-color: white;
@@ -36,27 +59,18 @@
             overflow: hidden;
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
-
         th, td {
             text-align: center;
             padding: 14px;
         }
-
         thead {
             background-color: #007bff;
             color: white;
         }
-
         .status-open {
             color: #e67e22;
             font-weight: bold;
         }
-
-        .status-progress {
-            color: #f39c12;
-            font-weight: bold;
-        }
-
         .btn-direction {
             background-color: #28a745;
             color: white;
@@ -65,67 +79,106 @@
             text-decoration: none;
             font-size: 14px;
         }
-
         .btn-direction:hover {
             background-color: #218838;
         }
     </style>
 </head>
 <body>
-    <h2>Worker Dashboard</h2>
+    <h2>Worker Dashboard: {{ job_label }}</h2>
+
+    {% if notifications %}
+    <div class="notif-box">
+        <h3>Notifications</h3>
+        <ul>
+            {% for n in notifications %}
+            <li>
+                {{ n.message }}<br>
+                <small>{{ n.created|date:"Y-m-d H:i" }}</small>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
 
     <!-- Map -->
     <div id="map"></div>
 
-    <!-- Task Table -->
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Title</th>
-                <th>Type</th>
-                <th>Location</th>
-                <th>Status</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>Broken Light</td>
-                <td>Electrical</td>
-                <td>Main Street</td>
-                <td><span class="status-open">Open</span></td>
-                <td>
-                    <a class="btn-direction" href="https://www.google.com/maps/dir/?api=1&destination=31.2520,34.7910" target="_blank">
-                        Get Directions
-                    </a>
-                </td>
-            </tr>
-            <tr>
-                <td>Flooded Area</td>
-                <td>Water</td>
-                <td>River Rd</td>
-                <td><span class="status-progress">In Progress</span></td>
-                <td>
-                    <a class="btn-direction" href="https://www.google.com/maps/dir/?api=1&destination=31.2505,34.7905" target="_blank">
-                        Get Directions
-                    </a>
-                </td>
-            </tr>
-        </tbody>
-    </table>
+    <!-- Reports Table -->
+<table class="table">
+  <thead>
+    <tr>
+      <th>Title</th>
+      <th>Type</th>
+      <th>Location</th>
+      <th>Status</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for report in page_obj %}
+      <tr>
+        <td>{{ report.title }}</td>
+        <td>{{ report.type_name }}</td>
+        <td>{{ report.place }}</td>
+        <td><span class="status-open">Open</span></td>
+        <td>
+          <a
+            class="btn-direction"
+            href="https://www.google.com/maps/dir/?api=1&destination={{ report.latitude }},{{ report.longitude }}"
+            target="_blank"
+          >Get Directions</a>
+        </td>
+      </tr>
+    {% empty %}
+      <tr>
+        <td colspan="5">No reports assigned for {{ job_label }}.</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+    <!-- Pagination -->
+    <nav aria-label="Page navigation" class="mt-3">
+      <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+        </li>
+        {% endif %}
+        <li class="page-item disabled">
+          <span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        </li>
+        {% if page_obj.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+        </li>
+        {% endif %}
+      </ul>
+    </nav>
 
     <script>
         function initMap() {
-            var center = { lat: 31.2518, lng: 34.7913 };
-            var map = new google.maps.Map(document.getElementById("map"), {
-                center: center,
+            // Center map on first report or default coords
+            const coords = {% if page_obj|length > 0 %}
+              { lat: {{ page_obj.0.latitude }}, lng: {{ page_obj.0.longitude }} }
+            {% else %}
+              { lat: 31.2518, lng: 34.7913 }
+            {% endif %};
+
+            const map = new google.maps.Map(document.getElementById("map"), {
+                center: coords,
                 zoom: 13
             });
 
-            // Sample markers
             const locations = [
-                { lat: 31.2520, lng: 34.7910, title: "Broken Light" },
-                { lat: 31.2505, lng: 34.7905, title: "Flooded Area" }
+                {% for report in page_obj %}
+                {
+                  lat: {{ report.latitude }},
+                  lng: {{ report.longitude }},
+                  title: "{{ report.title|escapejs }}"
+                }{% if not forloop.last %},{% endif %}
+                {% endfor %}
             ];
 
             locations.forEach(loc => {
@@ -138,7 +191,7 @@
         }
 
         function loadMapScript() {
-            var script = document.createElement('script');
+            const script = document.createElement('script');
             script.src = "https://maps.googleapis.com/maps/api/js?key=AIzaSyDlCLAutdnujjoTEDdpYwIUvOSTluY2rRQ&callback=initMap";
             script.async = true;
             script.defer = true;
