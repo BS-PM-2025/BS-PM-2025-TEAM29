@@ -2,19 +2,28 @@ pipeline {
     agent any
 
     stages {
+        stage('Install dependencies') {
+            steps {
+                echo 'Installing Python dependencies (globally for user)...'
+                sh "pip3 install --user --upgrade pip"
+                sh "pip3 install --user -r requirements.txt"
+            }
+        }
         stage('Build') {
             steps {
-                echo 'Building..'
+                echo 'Building the project (checking syntax)...'
+                sh "python3 manage.py check"
             }
         }
         stage('Test') {
             steps {
-                echo 'Testing..'
+                echo 'Running Django tests...'
+                sh "python3 manage.py test"
             }
         }
         stage('Deploy') {
             steps {
-                echo 'Deploying....'
+                echo 'Deploy step - (add your deploy script here if needed)'
             }
         }
     }
