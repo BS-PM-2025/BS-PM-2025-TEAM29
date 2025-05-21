@@ -1,3 +1,4 @@
+# beer_sheva_backend/settings.py
 from pathlib import Path
 import os
 from beer_sheva_backend.firebase import initialize_firebase
@@ -15,7 +16,7 @@ ALLOWED_HOSTS = []
 
 # Firebase settings (you can move these to a separate file if necessary)
 FIREBASE_CREDENTIALS_PATH = os.path.join(BASE_DIR, 'reports_database.json')
-
+FIREBASE_WEB_API_KEY = 'AIzaSyAddVUXueGIT9uwIkeWRzZ9FuQnn3JIhPI'
 
 
 
@@ -29,7 +30,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',  # REST API Framework
-    'reports',  # Your custom app
+    'reports',
+    'user',
 ]
 
 MIDDLEWARE = [
@@ -43,7 +45,6 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'beer_sheva_backend.urls'
-
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -85,8 +86,13 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = 'static/'
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/add/'
+LOGOUT_REDIRECT_URL = '/'
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

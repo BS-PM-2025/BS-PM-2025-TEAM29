@@ -10,13 +10,7 @@ urlpatterns = [
     path('map/', views.map_view, name='map_view'), #Malik
     path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'), #Abed BSPM25T29-17
     path('worker-dashboard/', views.worker_dashboard, name='worker_dashboard'), #Ibrahim BSPM25T29-151
-    path('login/', views.user_login, name='login'), #Malik
-    path('logout/', views.user_logout, name='logout'), #Malik
-    path('register/', views.register_view, name='register'), #Malik
+    path("admin/dashboard/", admin_views.admin_dashboard, name="admin-firebase-reports")
 
-
-    path("admin/dashboard/", admin_views.admin_dashboard, name="admin-firebase-reports"),
-
-    
 ]
 

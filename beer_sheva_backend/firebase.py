@@ -1,5 +1,6 @@
 # beer_sheva_backend/firebase.py
 import firebase_admin
+from django.http import JsonResponse
 from firebase_admin import credentials, firestore
 from django.conf import settings
 from firebase_admin import firestore
@@ -22,25 +23,29 @@ def initialize_firebase():
     return firestore.client()
 
 #Firas BSPM25T29-16
-def save_report_to_firebase(title, description, location, latitude, longitude, report_type):
-    db = firestore.client()  
+def save_report_to_firebase(title, description, location, latitude, longitude, report_type, reporter_email, image_url=None):
+    db = firestore.client()
 
     created_at = datetime.datetime.utcnow()
 
-    report_ref = db.collection('Reports').add({
+    report_data = db.collection('Reports').add({
         'title': title,
         'description': description,
         'location': location,
         'latitude': latitude,
         'longitude': longitude,
-        'created_at': created_at, 
-        'type': report_type,  
-        'status': 'pending'  
+        'created_at': created_at,
+        'type': report_type,
+        'reporter_email': reporter_email,  # new
+        'status': 'pending',
+        'supporters': []  # Let Other Users "Join" (Support) a Report
     })
+    if image_url:
+        report_data['image_url'] = image_url
 
-    report_id = report_ref[1].id  
+    report_ref = db.collection('Reports').add(report_data)
+    return report_ref[1].id
 
-    return report_id
 #Malik BSPM25T29-18
 def get_reports_from_firebase(report_type=None, user_location=None, radius=None):
     """
@@ -68,7 +73,8 @@ def get_reports_from_firebase(report_type=None, user_location=None, radius=None)
             'latitude': report_data.get('latitude'),
             'longitude': report_data.get('longitude'),
             'created_at': report_data.get('created_at'),
-            'type': report_data.get('type', 'general'), 
+            'type': report_data.get('type', 'general'),
+            'image_url': report_data.get('image_url'),
             'status': report_data.get('status', 'pending') 
         })
 
@@ -89,3 +95,26 @@ def get_report_by_id(report_id):
     if doc.exists:
         return doc.to_dict()
     return None
+#BSPM25T29-58
+def join_report(request, report_id):
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'User must be logged in'}, status=401)
+
+    user_email = request.user.email
+
+    try:
+        db = firestore.client()
+        doc_ref = db.collection('Reports').document(report_id)
+
+        doc = doc_ref.get()
+        if not doc.exists:
+            return JsonResponse({'error': 'Report not found'}, status=404)
+
+        doc_ref.update({
+            'supporters': firestore.ArrayUnion([user_email])
+        })
+
+        return JsonResponse({'success': 'You joined the report successfully!'})
+    except Exception as e:  # ❗ This was missing
+        logging.error(f"Error joining report: {e}")
+        return JsonResponse({'error': 'An error occurred while joining the report'}, status=500)

@@ -1,6 +1,6 @@
-<!-- templates/add_report.html -->
 
 <!DOCTYPE html>
+
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -136,32 +136,9 @@
 <body>
     <div class="container">
         <h1 class="text-center mb-4">הוספת דיווח</h1>
-
-        {% if messages %}
-          <ul class="message-list">
-            {% for message in messages %}
-              <li class="{{ message.tags }}">{{ message }}</li>
-            {% endfor %}
-          </ul>
-        {% endif %}
-
-        {% if error %}
-          <ul class="message-list">
-            <li class="error">{{ error }}</li>
-          </ul>
-        {% endif %}
-
-        {% if form.errors %}
-          <ul class="message-list">
-            {% for field, errs in form.errors.items %}
-              <li class="error">{{ field }}: {{ errs|join:", " }}</li>
-            {% endfor %}
-          </ul>
-        {% endif %}
-
-        <form method="POST">
+        <form method="POST" enctype="multipart/form-data">
             {% csrf_token %}
-
+            <!-- Title Input -->
             <div class="form-group">
                 <label for="title" class="form-label">כותרת</label>
                 <input type="text" class="form-control" name="title" id="title"
@@ -202,13 +179,21 @@
                 </select>
             </div>
 
+                        <!-- Image Upload -->
+            <div class="form-group">
+                <label for="image" class="form-label">העלאת תמונה (לא חובה)</label>
+                <input type="file" class="form-control" name="image" id="image" accept="image/*">
+            </div>
+            <!-- Map -->
             <div class="form-group">
                 <label for="map" class="form-label">בחר מיקום על המפה</label>
                 <div id="map"></div>
             </div>
 
             <div class="form-group text-center">
-                <button type="submit" class="submit-btn">שלח דיווח</button>
+                <button type="submit" class="submit-btn" {% if not request.user.is_authenticated %} disabled {% endif %}>
+                    שלח דיווח
+                </button>
             </div>
         </form>
     </div>
