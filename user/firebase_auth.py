@@ -19,7 +19,6 @@ def firebase_sign_in(email, password):
         return None
 
 def firebase_user_exists(email):
-    """Optional: check if a user exists in Firebase Auth (requires elevated access via Admin SDK)."""
     # This requires you to use the Firebase Admin SDK
     from firebase_admin import auth
     try:

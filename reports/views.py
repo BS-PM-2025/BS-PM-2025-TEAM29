@@ -22,51 +22,57 @@ from django.contrib.auth import login
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from user.decorators import role_required
+from user.decorators import firebase_login_required
 logger = logging.getLogger(__name__)
 
 
 # Firas BSPM25T29-16
+from firebase_admin import storage
+import uuid
+
+@firebase_login_required
 def add_report(request):
     if request.method == 'POST':
-        form = ReportForm(request.POST)
+        form = ReportForm(request.POST, request.FILES)
         if form.is_valid():
             try:
-                # Save the report to the local database
                 report = form.save()
-                logger.info(f"Report saved successfully: {report}")
-
-                # Extract the data from the form
                 title = form.cleaned_data['title']
                 description = form.cleaned_data['description']
                 location = form.cleaned_data['place']
                 latitude = form.cleaned_data['latitude']
                 longitude = form.cleaned_data['longitude']
                 report_type = form.cleaned_data['type']
+                reporter_email = request.session.get('user_email', 'anonymous')
 
-                logger.info(f"Extracted data: title={title}, description={description}, "
-                            f"location={location}, latitude={latitude}, longitude={longitude}, type={report_type}")
+                # Upload image to Firebase Storage
+                image_url = None
+                if 'image' in request.FILES:
+                    image_file = request.FILES['image']
+                    file_extension = image_file.name.split('.')[-1]
+                    image_name = f"reports/{uuid.uuid4()}.{file_extension}"
+                    bucket = storage.bucket()
+                    blob = bucket.blob(image_name)
+                    blob.upload_from_file(image_file, content_type=image_file.content_type)
+                    blob.make_public()
+                    image_url = blob.public_url
 
-                # Save the report to Firebase
+                # Save to Firebase with image URL
                 try:
-                    report_id = save_report_to_firebase(title, description, location, latitude, longitude, report_type)
-                    logger.info(f"Report saved to Firebase with ID: {report_id}")
+                    report_id = save_report_to_firebase(
+                        title, description, location, latitude, longitude, report_type,
+                        reporter_email, image_url=image_url
+                    )
                 except Exception as e:
-                    logger.error(f"Error saving report to Firebase: {e}")
                     return render(request, 'add_report.html', {'form': form, 'error': 'Error saving to Firebase'})
 
-                # Save the Firebase ID to the report in the local database
                 report.firebase_id = report_id
                 report.save()
-
-                # Add success message
                 messages.success(request, 'Your report has been submitted successfully!')
                 return redirect('report_confirmation', report_id=report_id)
-
             except Exception as e:
-                logger.error(f"Error saving the report to local database: {e}")
                 return render(request, 'add_report.html', {'form': form, 'error': 'Error saving the report'})
         else:
-            logger.warning("Form is not valid.")
             return render(request, 'add_report.html', {'form': form, 'error': 'Form is invalid'})
     else:
         form = ReportForm()
@@ -108,7 +114,6 @@ def map_view(request):
 
 
 # Abed BSPM25T29-17
-@login_required
 @role_required(['admin'])
 def admin_dashboard(request):
     reports_list = get_reports_from_firebase()
@@ -116,8 +121,7 @@ def admin_dashboard(request):
 
 
 # Ibrahim BSPM25T29-151
-@login_required
 @role_required(['admin', 'worker'])
 def worker_dashboard(request):
     reports_list = get_reports_from_firebase()
-    return render(request, 'worker_dashboard.html', {'reports': reports_list})
+    return render(request, 'worker_dashboard.html', {'reports': reports_list}

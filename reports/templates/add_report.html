@@ -1,6 +1,6 @@
 <!-- Firas-->
-
 <!DOCTYPE html>
+
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -121,9 +121,8 @@
 <body>
     <div class="container">
         <h1 class="text-center mb-4">הוספת דיווח</h1>
-        <form method="POST">
+        <form method="POST" enctype="multipart/form-data">
             {% csrf_token %}
-
             <!-- Title Input -->
             <div class="form-group">
                 <label for="title" class="form-label">כותרת</label>
@@ -165,7 +164,11 @@
                     {% endfor %}
                 </select>
             </div>
-
+                        <!-- Image Upload -->
+            <div class="form-group">
+                <label for="image" class="form-label">העלאת תמונה (לא חובה)</label>
+                <input type="file" class="form-control" name="image" id="image" accept="image/*">
+            </div>
             <!-- Map -->
             <div class="form-group">
                 <label for="map" class="form-label">בחר מיקום על המפה</label>
@@ -174,7 +177,9 @@
 
             <!-- Submit Button -->
             <div class="form-group text-center">
-                <button type="submit" class="submit-btn">שלח דיווח</button>
+                <button type="submit" class="submit-btn" {% if not request.user.is_authenticated %} disabled {% endif %}>
+                    שלח דיווח
+                </button>
             </div>
         </form>
     </div>

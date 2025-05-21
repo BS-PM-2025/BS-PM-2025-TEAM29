@@ -45,7 +45,6 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'beer_sheva_backend.urls'
-
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -87,8 +86,13 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = 'static/'
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/add/'
+LOGOUT_REDIRECT_URL = '/'
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

@@ -59,6 +59,7 @@ def user_login(request):
         if user_data:
             firebase_uid = user_data['localId']
             request.session['firebase_uid'] = firebase_uid
+            request.session['user_email'] = email
 
             # 🔐 Fetch user role from Firestore
             db = firestore.client()
