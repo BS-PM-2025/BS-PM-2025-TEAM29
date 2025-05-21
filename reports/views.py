@@ -124,4 +124,4 @@ def admin_dashboard(request):
 @role_required(['admin', 'worker'])
 def worker_dashboard(request):
     reports_list = get_reports_from_firebase()
-    return render(request, 'worker_dashboard.html', {'reports': reports_list}
+    return render(request, 'worker_dashboard.html', {'reports': reports_list})

@@ -1,3 +1,4 @@
+<!-- Malik -->
 
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
@@ -100,6 +101,18 @@
         }
     </style>
 </head>
+<form method="get" action="{% url 'report_list' %}" class="form-inline mb-4 justify-content-center">
+    <label for="type" class="mr-2 font-weight-bold">סנן לפי קטגוריה:</label>
+    <select name="type" id="type" class="form-control mr-2" onchange="this.form.submit()">
+        <option value="">-- הצג הכל --</option>
+        {% for key, value in type_dict.items %}
+            <option value="{{ key }}" {% if request.GET.type == key %}selected{% endif %}>
+                {{ value }}
+            </option>
+        {% endfor %}
+    </select>
+    <noscript><button type="submit" class="btn btn-primary">סנן</button></noscript>
+</form>
 <body>
     <div class="container">
         <h1>רשימת דיווחים</h1>
