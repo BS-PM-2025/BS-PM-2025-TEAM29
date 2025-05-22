@@ -9,7 +9,9 @@ urlpatterns = [
     path('confirmation/<str:report_id>/', views.report_confirmation, name='report_confirmation'), #Ibrahim BSPM25T29-3
     path('map/', views.map_view, name='map_view'), #Malik
     path('worker-dashboard/', views.worker_dashboard, name='worker_dashboard'), #Ibrahim BSPM25T29-151
-    path("admin/dashboard/", admin_views.admin_dashboard, name="admin-firebase-reports")
+    path("admin/dashboard/", admin_views.admin_dashboard, name="admin-firebase-reports"),
+    path("contact_us/", views.contact_us, name="contact_us"),
+
 
 ]
 
