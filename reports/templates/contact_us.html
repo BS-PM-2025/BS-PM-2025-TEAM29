@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>צור קשר</title>
+  <link href="https://fonts.googleapis.com/css2?family=David:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.0/css/bootstrap.min.css">
+  <style>
+    body {
+      font-family: 'David', sans-serif;
+      background: linear-gradient(to right, #e0f7fa, #d1e9f9);
+      padding: 40px 15px;
+    }
+
+    .contact-container {
+      max-width: 600px;
+      margin: auto;
+      background-color: #ffffffdd;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+    }
+
+    h1.page-title {
+      text-align: center;
+      font-size: 2.4rem;
+      color: #007bff;
+      margin-bottom: 30px;
+      font-weight: bold;
+    }
+
+    .contact-info {
+      font-size: 1.1rem;
+      color: #333;
+    }
+
+    .contact-info strong {
+      color: #007bff;
+    }
+
+    .back-btn {
+      display: block;
+      margin: 30px auto 0;
+      background-color: #007bff;
+      color: white;
+      padding: 10px 24px;
+      border-radius: 8px;
+      font-weight: bold;
+      text-decoration: none;
+      text-align: center;
+      width: fit-content;
+      transition: background 0.3s ease;
+    }
+
+    .back-btn:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="contact-container">
+    <h1 class="page-title">צור קשר</h1>
+    <div class="contact-info">
+      <p><strong>שם:</strong> Abed Abu Asbi</p>
+      <p><strong>אימייל:</strong> <a href="mailto:abedasbe2002@gmail.com">abedasbe2002@gmail.com</a></p>
+      <p><strong>מספר טלפון:</strong> <a href="tel:+972527794085">052-779-4085</a></p>
+    </div>
+    <a href="{% url 'report_list' %}" class="back-btn">חזור לרשימת הדיווחים</a>
+  </div>
+
+</body>
+</html>
