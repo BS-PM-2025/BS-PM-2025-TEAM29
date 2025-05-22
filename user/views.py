@@ -16,27 +16,30 @@ FIREBASE_WEB_API_KEY = settings.FIREBASE_WEB_API_KEY  # Add this to settings
 @csrf_exempt
 def register_view(request):
     if request.method == 'POST':
-        email = request.POST['email']
-        password = request.POST['password']
-        confirm = request.POST['confirm_password']
+        username = request.POST.get('username')  # 👈 Get the username
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        confirm = request.POST.get('confirm_password')
 
         if password != confirm:
             messages.error(request, "Passwords do not match.")
             return redirect('register')
 
         try:
-            # 1. Create Firebase Auth user
+            # 1. Create Firebase user
             user = auth.create_user(email=email, password=password)
             uid = user.uid
 
-            # 2. Store additional data in Firestore (e.g., role = 'user')
+            # 2. Save user info to Firestore with UID as doc ID
             db = firestore.client()
             db.collection('Users').document(uid).set({
+                'username': username,   # 👈 Store username
                 'email': email,
                 'role': 'user',
+                'id': uid,
             })
 
-            messages.success(request, "User created successfully.")
+            messages.success(request, "User registered successfully.")
             return redirect('login')
 
         except Exception as e:
@@ -52,8 +55,23 @@ from .firebase_auth import firebase_sign_in
 
 def user_login(request):
     if request.method == 'POST':
-        email = request.POST['email']
+        identifier = request.POST['identifier']  # can be email or username
         password = request.POST['password']
+
+        db = firestore.client()
+
+        # Determine if identifier is an email or username
+        if '@' in identifier:
+            email = identifier
+        else:
+            # Assume it's a username; find the corresponding email
+            users_ref = db.collection('Users')
+            query = users_ref.where('username', '==', identifier).limit(1).stream()
+            user_doc = next(query, None)
+            if user_doc is None:
+                messages.error(request, "Username not found.")
+                return redirect('login')
+            email = user_doc.to_dict().get('email')
 
         user_data = firebase_sign_in(email, password)
         if user_data:
@@ -62,16 +80,15 @@ def user_login(request):
             request.session['user_email'] = email
 
             # 🔐 Fetch user role from Firestore
-            db = firestore.client()
             role_doc = db.collection('Users').document(firebase_uid).get()
             if role_doc.exists:
                 role = role_doc.to_dict().get('role', 'user')
                 request.session['user_role'] = role
 
-            messages.success(request, f"Welcome {email}")
+            messages.success(request, f"Welcome {identifier}")
             return redirect('report_list')
         else:
-            messages.error(request, "Invalid email or password.")
+            messages.error(request, "Invalid credentials.")
             return redirect('login')
 
     return render(request, 'login.html')
