@@ -11,7 +11,7 @@ from django.core.paginator import Paginator
 from django.shortcuts import render, redirect
 from .forms import ReportForm, type_dict
 from django.shortcuts import render, redirect
-from .forms import ReportForm
+from .forms import REPORT_TYPE_LABELS
 from beer_sheva_backend.firebase import save_report_to_firebase
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
@@ -94,7 +94,7 @@ def report_list(request):
     reports_list = get_reports_from_firebase(report_type=report_type)
 
     for report in reports_list:
-        report['type_name'] = type_dict.get(report.get('type'), 'לא ידוע')
+        report['type_name'] = REPORT_TYPE_LABELS.get(report.get('type'), 'סוג לא ידוע')
 
     paginator = Paginator(reports_list, 5)
     page_number = request.GET.get('page')
@@ -103,7 +103,7 @@ def report_list(request):
     return render(request, 'report_list.html', {
         'page_obj': page_obj,
         'reports_data': reports_list,
-        'type_dict': type_dict,
+        'type_dict': REPORT_TYPE_LABELS,
     })
 
 

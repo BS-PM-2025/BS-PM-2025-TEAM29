@@ -42,8 +42,6 @@ type_dict = {
     "maintenance":   "Maintenance Man",
     "plumber":       "Plumber",
     "nature reserver": "Nature Reserver",
-
-    # …add any others you need…
 }
 
 REPORT_TYPE_LABELS = {
