@@ -1,78 +1,431 @@
-<!-- //Malik - Sprint 2 - Admin - BSPM25T29-7 -->
 <!DOCTYPE html>
 <html lang="he">
 <head>
   <meta charset="UTF-8">
   <title>ניהול דיווחים | Admin Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body { font-family: 'Segoe UI', sans-serif; background: #f4f4f4; margin: 0; padding: 40px;}
-    h1 { color: #252525; margin-bottom: 30px;}
-    table { width: 100%; background: #fff; border-collapse: collapse; border-radius: 10px; overflow: hidden; }
-    th, td { padding: 14px 8px; border-bottom: 1px solid #ececec; text-align: center; }
-    th { background: #f2e2ff; }
-    tr:last-child td { border-bottom: none; }
-    button { padding: 5px 12px; border-radius: 5px; border: none; background: #e74c3c; color: #fff; font-weight: bold; cursor: pointer; margin: 2px 0;}
-    form { display: inline; }
-    td.actions { min-width: 100px;}
+    body {
+      font-family: 'Segoe UI', 'Tahoma', Arial, sans-serif;
+      background: linear-gradient(120deg, #ede7f6 0%, #f9fbe7 100%);
+      margin: 0;
+      min-height: 100vh;
+      padding: 0;
+    }
+    .admin-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: linear-gradient(90deg, #512da8 50%, #7c4dff 100%);
+      color: #fff;
+      padding: 26px 44px 22px 32px;
+      box-shadow: 0 4px 22px #512da828;
+      border-bottom-left-radius: 42px;
+      border-bottom-right-radius: 42px;
+      margin-bottom: 24px;
+    }
+    .admin-header h1 {
+      font-size: 2.1rem;
+      font-weight: 900;
+      letter-spacing: 1.2px;
+      margin: 0;
+      text-shadow: 0 2px 7px #311b9218;
+    }
+    .admin-avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #b388ff 40%, #fffde7 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 10px #4527a060;
+      font-size: 2.1rem;
+      font-weight: 700;
+      color: #7c4dff;
+      margin-right: 8px;
+    }
+    .dashboard-content {
+      max-width: 2000px;
+      margin: 0 auto;
+      padding: 24px 3vw 60px 3vw;
+    }
+    .dashboard-card {
+      background: linear-gradient(100deg, #fff 60%, #ede7f6 100%);
+      border-radius: 22px;
+      box-shadow: 0 7px 34px #ab47bc22;
+      padding: 24px 16px 8px 16px;
+      margin-top: 24px;
+      margin-bottom: 28px;
+      overflow-x: auto;
+      border: 1.5px solid #f3e5f5;
+    }
+    h2 {
+      text-align: right;
+      margin: 0 0 18px 0;
+      font-size: 1.3em;
+      letter-spacing: 0.6px;
+    }
+    .pending-title { color: #d84315; }
+    .completed-title { color: #388e3c; }
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      min-width: 1000px;
+      background: none;
+    }
+    th, td {
+      text-align: center;
+      padding: 17px 10px;
+      font-size: 1.09em;
+      border-bottom: 1px solid #f0f0fa;
+      transition: background 0.18s;
+    }
+    th {
+      background: #ede7f6;
+      color: #4527a0;
+      font-weight: 800;
+      font-size: 1.1em;
+      border-bottom: 3px solid #d1c4e9;
+      letter-spacing: 0.5px;
+    }
+    tr:not(:last-child):hover {
+      background: #f3e5f5;
+      transition: background 0.15s;
+    }
+    .badge {
+      display: inline-block;
+      padding: 8px 22px;
+      border-radius: 30px;
+      font-size: 1em;
+      font-weight: 600;
+      letter-spacing: 0.6px;
+      color: #fff;
+      background: #7c4dff;
+      box-shadow: 0 1.5px 4px #7e57c220;
+      border: none;
+      min-width: 88px;
+      text-align: center;
+      transition: background 0.16s;
+    }
+    .badge.unassigned { background: #e53935; }
+    .badge.assigned { background: #43a047; }
+    .badge.status-new { background: #1e88e5; }
+    .badge.status-inprogress { background: #ffa726; }
+    .badge.status-done { background: #43a047; }
+    .badge.status-other { background: #9e9e9e; }
+    .actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: center;
+      min-width: 120px;
+    }
+    button, select, input[type="text"] {
+      font-size: 1.02em;
+      padding: 8px 18px;
+      border-radius: 12px;
+      border: none;
+      outline: none;
+      margin-top: 0;
+      margin-bottom: 0;
+      background: #f3e5f5;
+      color: #512da8;
+      box-shadow: 0 2px 8px #ede7f688;
+      transition: background 0.16s, color 0.16s, box-shadow 0.12s;
+      font-family: inherit;
+    }
+    select {
+      min-width: 120px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 2px solid #ede7f6;
+    }
+    select:focus { border: 2px solid #7c4dff; }
+    button[type="submit"] {
+      background: linear-gradient(90deg, #7c4dff 50%, #512da8 100%);
+      color: #fff;
+      font-weight: bold;
+      border: none;
+      box-shadow: 0 2px 8px #7e57c220;
+      padding: 9px 22px;
+      margin-top: 7px;
+      cursor: pointer;
+    }
+    button[type="submit"]:hover, .delete-btn:hover {
+      background: linear-gradient(90deg, #512da8 60%, #d500f9 100%);
+      color: #fff;
+      box-shadow: 0 7px 22px #7e57c240;
+    }
+    .delete-btn {
+      background: linear-gradient(90deg, #e53935 65%, #ff5252 100%);
+      color: #fff;
+      font-weight: bold;
+      border: none;
+      margin-top: 0;
+      padding: 9px 22px;
+      box-shadow: 0 2px 8px #e5393520;
+    }
+    input[type="text"] {
+      border: 1.6px solid #c5cae9;
+      background: #f8f8fc;
+      margin-top: 6px;
+      width: 95%;
+      font-size: 1.07em;
+    }
+    input[type="text"]:focus {
+      border: 2px solid #7c4dff;
+      background: #fff;
+    }
+    /* PAGINATION */
+    .pagination {
+      text-align: center;
+      margin: 18px 0 12px 0;
+      user-select: none;
+    }
+    .pagination a,
+    .pagination span {
+      display: inline-block;
+      margin: 0 2px;
+      padding: 7px 15px;
+      border-radius: 13px;
+      font-size: 1.09em;
+      text-decoration: none;
+      font-weight: bold;
+      min-width: 32px;
+      transition: background 0.18s, color 0.16s;
+      border: none;
+      cursor: pointer;
+    }
+    .pagination .current {
+      background: #7c4dff;
+      color: #fff;
+      font-weight: 900;
+    }
+    .pagination .done-current {
+      background: #43a047;
+      color: #fff;
+      font-weight: 900;
+    }
+    .pagination a {
+      background: #ede7f6;
+      color: #512da8;
+    }
+    .pagination a:hover {
+      background: #d1c4e9;
+      color: #5e35b1;
+    }
+    @media (max-width: 1300px) {
+      .dashboard-content { padding: 9px 1vw; }
+      .dashboard-card { padding: 11px 2vw 5px 2vw; }
+      table { min-width: 850px; }
+    }
+    @media (max-width: 900px) {
+      .dashboard-card { padding: 6px 1vw 2px 1vw; }
+      .admin-header { padding: 16px 12px 14px 10px; }
+      table, th, td { font-size: 0.96em; padding: 10px 2px;}
+      th { font-size: 1em;}
+      .admin-header h1 { font-size: 1.25rem; }
+      .admin-avatar { width: 36px; height: 36px; font-size: 1.3rem; }
+    }
+    @media (max-width: 700px) {
+      .dashboard-content { padding: 0; }
+      .dashboard-card { padding: 3px 0 2px 0;}
+      table, th, td { font-size: 0.87em;}
+      .admin-header { padding: 9px 3vw 9px 4vw;}
+      .admin-header h1 { font-size: 1.03rem;}
+      .admin-avatar { width: 28px; height: 28px; font-size: 1rem;}
+    }
+    ::selection { background: #ede7f6; color: #4527a0; }
   </style>
 </head>
 <body dir="rtl">
-  <h1>ניהול דיווחים</h1>
-  <table>
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>כותרת (Title)</th>
-        <th>סטטוס (Status)</th>
-        <th>פעולות</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for report in reports %}
-      <tr>
-        <td>{{ report.id }}</td>
-        <td>{{ report.title }}</td>
-        <td>{{ report.status }}</td>
-        <td class="actions">
-          <form method="post" onsubmit="return confirm('אתה בטוח? זה ימחק את הדיווח לצמיתות.');">
-            {% csrf_token %}
-            <input type="hidden" name="action" value="delete_report">
-            <input type="hidden" name="report_id" value="{{ report.id }}">
-            <button type="submit">🗑 מחק</button>
-          </form>
-        </td>
-        <td>
-  {% if report.assigned_worker_id %}
-    <span class="worker-current">{{ report.assigned_worker_id }}</span>
-  {% else %}
-    <span class="worker-current">לא שובץ</span>
-  {% endif %}
-  <form method="post" style="margin-top:4px;">
-    {% csrf_token %}
-    <input type="hidden" name="action" value="assign_worker">
-    <input type="hidden" name="report_id" value="{{ report.id }}">
-    <select name="worker_id" required>
-      <option value="">בחר עובד</option>
-      {% for user in users %}
-        <option value="{{ user.id }}">{{ user.id }} | {{ user.email }}</option>
-      {% endfor %}
-    </select>
-    <button type="submit">שייך</button>
-  </form>
-</td>
-<td>
-  {{ report.status }}
-  <form method="post" style="margin-top:4px;">
-    {% csrf_token %}
-    <input type="hidden" name="action" value="update_status">
-    <input type="hidden" name="report_id" value="{{ report.id }}">
-    <input type="text" name="status" placeholder="סטטוס חדש" required>
-    <button type="submit">עדכן</button>
-  </form>
-</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <div class="admin-header">
+    <h1>ניהול דיווחים - פאנל מנהל</h1>
+    <div class="admin-avatar" title="מנהל"><span>👤</span></div>
+  </div>
+  <div class="dashboard-content">
+    <!-- UNDONE/PENDING REPORTS -->
+    <div class="dashboard-card">
+      <h2 class="pending-title">דיווחים פתוחים</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>כותרת</th>
+            <th>סטטוס</th>
+            <th>משובץ</th>
+            <th>שייך עובד</th>
+            <th>עדכן סטטוס</th>
+            <th>פעולות</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for report in undone_reports %}
+          <tr>
+            <td>{{ report.id }}</td>
+            <td>{{ report.title }}</td>
+            <td>
+              {% if report.status == "חדש" or not report.status %}
+                <span class="badge status-new">חדש</span>
+              {% elif report.status == "בתהליך" %}
+                <span class="badge status-inprogress">בתהליך</span>
+              {% elif report.status == "הושלם" %}
+                <span class="badge status-done">הושלם</span>
+              {% else %}
+                <span class="badge status-other">{{ report.status }}</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if report.assigned_worker_id %}
+                <span class="badge assigned">{{ report.assigned_worker_id }}</span>
+              {% else %}
+                <span class="badge unassigned">לא שובץ</span>
+              {% endif %}
+            </td>
+            <td>
+              <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="assign_worker">
+                <input type="hidden" name="report_id" value="{{ report.id }}">
+                <select name="worker_id" required>
+                  <option value="">בחר עובד</option>
+                  {% for user in users %}
+                    <option value="{{ user.id }}">
+                      {{ user.username|default:user.email|default:user.id }}
+                    </option>
+                  {% endfor %}
+                </select>
+                <button type="submit">שייך</button>
+              </form>
+            </td>
+            <td>
+              <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update_status">
+                <input type="hidden" name="report_id" value="{{ report.id }}">
+                <input type="text" name="status" placeholder="סטטוס חדש" required>
+                <button type="submit">עדכן</button>
+              </form>
+            </td>
+            <td class="actions">
+              <form method="post" onsubmit="return confirm('אתה בטוח? זה ימחק את הדיווח לצמיתות.');">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete_report">
+                <input type="hidden" name="report_id" value="{{ report.id }}">
+                <button type="submit" class="delete-btn">🗑 מחק</button>
+              </form>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7" style="color:#777">אין דיווחים פתוחים</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <!-- PAGINATION FOR UNDONE -->
+      <div class="pagination">
+        {% if undone_pages > 1 %}
+          {% for i in undone_page_range %}
+            {% if i == undone_page %}
+              <span class="current">{{ i }}</span>
+            {% else %}
+              <a href="?undone_page={{ i }}&done_page={{ done_page|default:1 }}">{{ i }}</a>
+            {% endif %}
+          {% endfor %}
+        {% endif %}
+      </div>
+    </div>
+    <!-- COMPLETED REPORTS -->
+    <div class="dashboard-card">
+      <h2 class="completed-title">דיווחים שהושלמו</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>כותרת</th>
+            <th>סטטוס</th>
+            <th>משובץ</th>
+            <th>שייך עובד</th>
+            <th>עדכן סטטוס</th>
+            <th>פעולות</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for report in completed_reports %}
+          <tr>
+            <td>{{ report.id }}</td>
+            <td>{{ report.title }}</td>
+            <td>
+              {% if report.status == "חדש" or not report.status %}
+                <span class="badge status-new">חדש</span>
+              {% elif report.status == "בתהליך" %}
+                <span class="badge status-inprogress">בתהליך</span>
+              {% elif report.status == "הושלם" %}
+                <span class="badge status-done">הושלם</span>
+              {% else %}
+                <span class="badge status-other">{{ report.status }}</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if report.assigned_worker_id %}
+                <span class="badge assigned">{{ report.assigned_worker_id }}</span>
+              {% else %}
+                <span class="badge unassigned">לא שובץ</span>
+              {% endif %}
+            </td>
+            <td>
+              <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="assign_worker">
+                <input type="hidden" name="report_id" value="{{ report.id }}">
+                <select name="worker_id" required>
+                  <option value="">בחר עובד</option>
+                  {% for user in users %}
+                    <option value="{{ user.id }}">
+                      {{ user.username|default:user.email|default:user.id }}
+                    </option>
+                  {% endfor %}
+                </select>
+                <button type="submit">שייך</button>
+              </form>
+            </td>
+            <td>
+              <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update_status">
+                <input type="hidden" name="report_id" value="{{ report.id }}">
+                <input type="text" name="status" placeholder="סטטוס חדש" required>
+                <button type="submit">עדכן</button>
+              </form>
+            </td>
+            <td class="actions">
+              <form method="post" onsubmit="return confirm('אתה בטוח? זה ימחק את הדיווח לצמיתות.');">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete_report">
+                <input type="hidden" name="report_id" value="{{ report.id }}">
+                <button type="submit" class="delete-btn">🗑 מחק</button>
+              </form>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7" style="color:#777">אין דיווחים שהושלמו</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <!-- PAGINATION FOR COMPLETED -->
+      <div class="pagination">
+        {% if done_pages > 1 %}
+          {% for i in done_page_range %}
+            {% if i == done_page %}
+              <span class="done-current">{{ i }}</span>
+            {% else %}
+              <a href="?undone_page={{ undone_page|default:1 }}&done_page={{ i }}">{{ i }}</a>
+            {% endif %}
+          {% endfor %}
+        {% endif %}
+      </div>
+    </div>
+  </div>
 </body>
 </html>
