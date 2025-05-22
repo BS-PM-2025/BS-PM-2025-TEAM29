@@ -18,11 +18,11 @@ def admin_dashboard(request):
             worker_inner_id = request.POST.get("worker_id")
             if worker_inner_id:
                 db.collection("Reports").document(report_id).update({"assigned_worker_id": worker_inner_id})
-                users_ref = db.collection("users").stream()
+                users_ref = db.collection("Users").stream()
                 for user in users_ref:
                     user_data = user.to_dict()
-                    if user_data.get("role", "").lower() == "worker" and user_data.get("id") == worker_inner_id:
-                        user_ref = db.collection("users").document(user.id)
+                    if user_data.get("role", "").lower() == "worker" and user.id == worker_inner_id:
+                        user_ref = db.collection("Users").document(user.id)
                         jobs = user_data.get("jobs", [])
                         if not any(job.get("report_id") == report_id for job in jobs):
                             jobs.append({"report_id": report_id, "role": "worker"})
@@ -37,18 +37,23 @@ def admin_dashboard(request):
 
         return redirect("admin-firebase-reports")
 
+    # GET request logic
     reports_ref = db.collection("Reports").stream()
-    users_ref = db.collection("users").stream()
+    users_ref = db.collection("Users").stream()
     users = []
     for user in users_ref:
         data = user.to_dict()
+        # Debug print
+        print(user.id, data)
         if data.get("role", "").lower() == "worker":
             users.append({
-                "id": data.get("id"),
-                "email": data.get("email", ""),
+                "username": data.get("username", ""),
+                "id": user.id,  # Use Firestore document ID
             })
+
     reports = [{**doc.to_dict(), "id": doc.id} for doc in reports_ref]
+
     return render(request, "admin_backend/admin_dashboard.html", {
         "reports": reports,
-        "users": users,
+        "users": users,  # Lowercase for context and template
     })
