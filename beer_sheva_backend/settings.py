@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     'rest_framework',  # REST API Framework
     'reports',
     'user',
+    'admin_backend',
 ]
 
 MIDDLEWARE = [
