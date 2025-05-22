@@ -119,3 +119,7 @@ def map_view(request):
 def worker_dashboard(request):
     reports_list = get_reports_from_firebase()
     return render(request, 'worker_dashboard.html', {'reports': reports_list})
+
+#Abed
+def contact_us(request):
+    return render(request, 'contact_us.html')
