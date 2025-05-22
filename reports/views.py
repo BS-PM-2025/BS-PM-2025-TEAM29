@@ -113,15 +113,9 @@ def map_view(request):
     return render(request, 'map.html', {'reports': reports_list})
 
 
-# Abed BSPM25T29-17
-@role_required(['admin'])
-def admin_dashboard(request):
-    reports_list = get_reports_from_firebase()
-    return render(request, 'admin_dashboard.html', {'reports': reports_list})
-
 
 # Ibrahim BSPM25T29-151
-@role_required(['admin', 'worker'])
+#@role_required(['admin', 'worker'])
 def worker_dashboard(request):
     reports_list = get_reports_from_firebase()
     return render(request, 'worker_dashboard.html', {'reports': reports_list})
