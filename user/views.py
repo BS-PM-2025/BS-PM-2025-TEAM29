@@ -95,3 +95,16 @@ def user_login(request):
 def logout_view(request):
     request.session.flush()  # Clears all session data
     return redirect('login')
+@csrf_exempt
+def reset_password_view(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        try:
+            link = auth.generate_password_reset_link(email)
+            # You could send this link via email using SendGrid, Gmail API, etc.
+            return render(request, 'password_reset_result.html', {'reset_link': link, 'email': email})
+        except Exception as e:
+            messages.error(request, f"שגיאה: {e}")
+            return redirect('reset_password')
+
+    return render(request, 'password_reset.html')
