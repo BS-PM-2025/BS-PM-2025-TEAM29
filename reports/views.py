@@ -24,7 +24,9 @@ from django.contrib import messages
 from user.decorators import role_required
 from user.decorators import firebase_login_required
 logger = logging.getLogger(__name__)
+from .forms import REPORT_TYPES
 
+type_dict = dict(REPORT_TYPES)
 
 # Firas BSPM25T29-16
 from firebase_admin import storage
@@ -87,6 +89,41 @@ def report_confirmation(request, report_id):
     return render(request, 'confirmation.html', {'report': report})
 
 
+
+
+from django.views.decorators.csrf import csrf_exempt
+from django.utils import timezone
+
+@csrf_exempt
+def report_detail(request, report_id):
+    report = get_report_by_id(report_id)
+    if not report:
+        return redirect('report_list')
+
+    # Simple: Keep upvotes and comments in Firebase as lists/fields
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        db = initialize_firebase()
+        report_ref = db.collection("Reports").document(report_id)
+        if action == 'upvote':
+            # Store upvotes as a count
+            upvotes = report.get('upvotes', 0)
+            report_ref.update({"upvotes": upvotes + 1})
+            report['upvotes'] = upvotes + 1  # for immediate feedback
+        elif action == 'add_comment':
+            comment = request.POST.get('comment', '').strip()
+            user = request.user if request.user.is_authenticated else None
+            comments = report.get('comments', [])
+            comments.append({
+                "text": comment,
+                "user": str(user) if user else "אנונימי",
+                "timestamp": timezone.now().isoformat()
+            })
+            report_ref.update({"comments": comments})
+            report['comments'] = comments
+
+    return render(request, 'report_detail.html', {'report': report})
+
 # Malik
 @role_required(['admin', 'worker', 'user'])
 def report_list(request):
@@ -94,11 +131,13 @@ def report_list(request):
     reports_list = get_reports_from_firebase(report_type=report_type)
 
     for report in reports_list:
-        report['type_name'] = type_dict.get(report.get('type'), 'לא ידוע')
+        report_type_key = report.get('type', '')
+        report['type_name'] = type_dict.get(report_type_key, 'לא ידוע')
 
     paginator = Paginator(reports_list, 5)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+
 
     return render(request, 'report_list.html', {
         'page_obj': page_obj,
@@ -120,8 +159,40 @@ def admin_dashboard(request):
     return render(request, 'admin_dashboard.html', {'reports': reports_list})
 
 
-# Ibrahim BSPM25T29-151
-@role_required(['admin', 'worker'])
-def worker_dashboard(request):
-    reports_list = get_reports_from_firebase()
-    return render(request, 'worker_dashboard.html', {'reports': reports_list})
+from django.shortcuts import render
+from django.conf import settings
+import smtplib
+from email.mime.text import MIMEText
+
+
+def contact_us(request):
+    sent = False
+    error = None
+
+    if request.method == "POST":
+        name = request.POST.get('name', '').strip()
+        email = request.POST.get('email', '').strip()
+        phone = request.POST.get('phone', '').strip()
+        message = request.POST.get('message', '').strip()
+
+        if not (name and email and phone and message):
+            error = "נא למלא את כל השדות."
+        else:
+            # Just fake a send for demo—do not actually send email.
+            subject = f"פנייה חדשה מאת {name} דרך צור קשר"
+            body = f"""
+            שם: {name}
+            אימייל: {email}
+            טלפון: {phone}
+            ------------------
+            הודעה:
+            {message}
+            """
+            # Print/log for demonstration
+            print(f"--- Demo Contact Form Submission ---\nSubject: {subject}\n{body}\n--------------------")
+            sent = True
+
+    return render(request, "contact_us.html", {
+        "sent": sent,
+        "error": error,
+    })
