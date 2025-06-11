@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>פרטי דיווח</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: 'Segoe UI', 'Cairo', sans-serif; background: #ede7f6; margin: 0; }
+    .container { max-width: 700px; margin: 32px auto; background: #fff; border-radius: 28px; box-shadow: 0 6px 36px #8881e117; padding: 32px 28px 40px 28px; }
+    h2 { color: #4527a0; font-size: 2em; margin-bottom: 24px; }
+    .details-row { margin-bottom: 14px; }
+    .label { color: #6d4c93; font-weight: 600; display:inline-block; min-width:120px; }
+    .value { color: #222; font-size: 1.12em; }
+    .section-title { font-size:1.1em; margin-top:19px; font-weight:700; color:#1976d2; }
+    .array-block { background: #ede7f6; border-radius: 12px; padding: 11px 15px; margin-bottom: 7px; }
+    .back-link { display:inline-block; margin-bottom:14px; color:#512da8; text-decoration:underline; font-weight:600;}
+    .badge { display:inline-block; padding:7px 19px; border-radius:22px; color:#fff; font-weight:600;}
+    .badge.assigned { background: #43a047;}
+    .badge.unassigned { background:#e74c3c;}
+    .badge.status-new { background: #1976d2;}
+    .badge.status-pending { background: #ffa726;}
+    .badge.status-done { background: #388e3c;}
+    .badge.status-other { background: #757575;}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="{% url 'admin-dashboard' %}" class="back-link">← חזרה לרשימת הדיווחים</a>
+    {% if not_found %}
+      <h2>לא נמצא דיווח כזה.</h2>
+    {% else %}
+      <h2>פרטי דיווח</h2>
+      <div class="details-row"><span class="label">מזהה:</span> <span class="value">{{ report.id }}</span></div>
+      <div class="details-row"><span class="label">כותרת:</span> <span class="value">{{ report.title|default:"-" }}</span></div>
+      <div class="details-row"><span class="label">סוג:</span> <span class="value">{{ report.type_he|default:report.type }}</span></div>
+      <div class="details-row"><span class="label">סטטוס:</span>
+        <span class="value">
+          {% if report.status == "חדש" or not report.status %}
+            <span class="badge status-new">חדש</span>
+          {% elif report.status == "בתהליך" or report.status == "pending" %}
+            <span class="badge status-pending">בתהליך</span>
+          {% elif report.status == "הושלם" or report.status == "done" %}
+            <span class="badge status-done">הושלם</span>
+          {% else %}
+            <span class="badge status-other">{{ report.status }}</span>
+          {% endif %}
+        </span>
+      </div>
+      <div class="details-row"><span class="label">עובד משובץ:</span>
+        {% if report.assigned_worker_id %}
+          <span class="badge assigned">{{ report.assigned_worker_id }}</span>
+        {% else %}
+          <span class="badge unassigned">לא שובץ</span>
+        {% endif %}
+      </div>
+      <div class="details-row"><span class="label">דוא״ל מדווח:</span> <span class="value">{{ report.reporter_email|default:"-" }}</span></div>
+      <div class="details-row"><span class="label">מיקום:</span> <span class="value">{{ report.location|default:"-" }}</span></div>
+      <div class="details-row"><span class="label">קו רוחב:</span> <span class="value">{{ report.latitude|default:"-" }}</span></div>
+      <div class="details-row"><span class="label">קו אורך:</span> <span class="value">{{ report.longitude|default:"-" }}</span></div>
+      <div class="details-row"><span class="label">תיאור:</span> <span class="value">{{ report.description|default:"-" }}</span></div>
+      <div class="details-row"><span class="label">זמן יצירה:</span> <span class="value">{{ report.created_at|default:"-" }}</span></div>
+      {% if report.equipment_issues %}
+        <div class="section-title">בעיות ציוד</div>
+        {% for item in report.equipment_issues %}
+          <div class="array-block">
+            <div><span class="label">הערה:</span> <span class="value">{{ item.text }}</span></div>
+            <div><span class="label">זמן:</span> <span class="value">{{ item.timestamp }}</span></div>
+            <div><span class="label">עובד:</span> <span class="value">{{ item.worker_id }}</span></div>
+          </div>
+        {% endfor %}
+      {% endif %}
+      {% if report.internal_notes %}
+        <div class="section-title">הערות פנימיות</div>
+        {% for note in report.internal_notes %}
+          <div class="array-block">
+            <div><span class="label">הערה:</span> <span class="value">{{ note }}</span></div>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% if report.comments %}
+  <div class="section-title">תגובות משתמשים</div>
+  {% for comment in report.comments %}
+    <div class="array-block" style="background:#f3f7fd;">
+      <div>
+        <span class="label">תגובה:</span>
+        <span class="value">{{ comment.text|default:"-" }}</span>
+      </div>
+      <div>
+        <span class="label">מאת:</span>
+        <span class="value">{{ comment.user|default:"אנונימי" }}</span>
+      </div>
+      <div>
+        <span class="label">זמן:</span>
+        <span class="value">{{ comment.timestamp|default:"-" }}</span>
+      </div>
+    </div>
+  {% endfor %}
+{% endif %}
+
+    {% endif %}
+  </div>
+</body>
+</html>
