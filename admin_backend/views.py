@@ -61,7 +61,7 @@ def admin_dashboard(request):
             if new_status:
                 db.collection("Reports").document(report_id).update({"status": new_status})
 
-        return redirect("admin-firebase-reports")
+        return redirect("admin-dashboard")
 
     # GET: Show dashboard with pagination
     page = int(request.GET.get('page', 1))
