@@ -1,0 +1,235 @@
+# user/tests/test_views.py
+
+from django.test import TestCase, RequestFactory
+from django.urls import reverse
+from django.contrib.sessions.middleware import SessionMiddleware
+from django.contrib.messages.storage.fallback import FallbackStorage
+from django.test.utils import override_settings
+from unittest.mock import patch, MagicMock
+
+from user.views import register_view, user_login, logout_view
+
+def add_session_to_request(request):
+    """Attach a session to the request."""
+    middleware = SessionMiddleware(lambda r: None)
+    middleware.process_request(request)
+    request.session.save()
+
+def add_messages_to_request(request):
+    """Attach fallback message storage to the request."""
+    setattr(request, '_messages', FallbackStorage(request))
+
+
+@override_settings(
+    MIDDLEWARE=[
+        'django.contrib.sessions.middleware.SessionMiddleware',
+        'django.contrib.messages.middleware.MessageMiddleware',
+    ],
+    MESSAGE_STORAGE='django.contrib.messages.storage.fallback.FallbackStorage'
+)
+class RegisterViewTests(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        # patch Firebase create_user and Firestore client
+        self.p_create = patch('user.views.auth.create_user')
+        self.mock_create = self.p_create.start()
+        self.p_fs = patch('user.views.firestore.client')
+        self.mock_fs = self.p_fs.start()
+
+    def tearDown(self):
+        patch.stopall()
+
+    def test_get_register(self):
+        request = self.factory.get(reverse('register'))
+        add_session_to_request(request)
+        add_messages_to_request(request)
+
+        response = register_view(request)
+        self.assertEqual(response.status_code, 200)
+
+    def test_post_password_mismatch(self):
+        data = {
+            'username': 'u',
+            'email': 'e@e.com',
+            'password': 'a',
+            'confirm_password': 'b',
+        }
+        request = self.factory.post(reverse('register'), data)
+        add_session_to_request(request)
+        add_messages_to_request(request)
+
+        response = register_view(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse('register'))
+
+    def test_post_success(self):
+        fake_user = MagicMock(uid='uid1')
+        self.mock_create.return_value = fake_user
+        mock_db = MagicMock()
+        self.mock_fs.return_value = mock_db
+
+        data = {
+            'username': 'u1',
+            'email': 'u1@e.com',
+            'password': 'pw',
+            'confirm_password': 'pw',
+            'role': 'worker',
+        }
+        request = self.factory.post(reverse('register'), data)
+        add_session_to_request(request)
+        add_messages_to_request(request)
+
+        response = register_view(request)
+
+        self.mock_create.assert_called_once_with(
+            email='u1@e.com', password='pw'
+        )
+        mock_db.collection.assert_called_with('Users')
+        mock_db.collection().document.assert_called_with('uid1')
+        mock_db.collection().document('uid1').set.assert_called_once_with({
+            'username': 'u1',
+            'email': 'u1@e.com',
+            'role': 'worker',
+            'id': 'uid1',
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse('login'))
+
+    def test_post_exception(self):
+        self.mock_create.side_effect = Exception('fail')
+        data = {'username': 'u', 'email': 'e@e.com', 'password': 'pw', 'confirm_password': 'pw'}
+        request = self.factory.post(reverse('register'), data)
+        add_session_to_request(request)
+        add_messages_to_request(request)
+
+        response = register_view(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse('register'))
+
+
+@override_settings(
+    MIDDLEWARE=[
+        'django.contrib.sessions.middleware.SessionMiddleware',
+        'django.contrib.messages.middleware.MessageMiddleware',
+    ],
+    MESSAGE_STORAGE='django.contrib.messages.storage.fallback.FallbackStorage'
+)
+class UserLoginTests(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        # patch Firestore client and firebase_sign_in
+        self.p_fs = patch('user.views.firestore.client')
+        self.mock_fs = self.p_fs.start()
+        self.p_signin = patch('user.views.firebase_sign_in')
+        self.mock_signin = self.p_signin.start()
+
+    def tearDown(self):
+        patch.stopall()
+
+    def test_get_login(self):
+        request = self.factory.get(reverse('login'))
+        add_session_to_request(request)
+        add_messages_to_request(request)
+
+        response = user_login(request)
+        self.assertEqual(response.status_code, 200)
+
+    def test_post_username_not_found(self):
+        mock_db = MagicMock()
+        lookup = MagicMock()
+        # return an iterator, not a list
+        lookup.where.return_value.limit.return_value.stream.return_value = iter([])
+        mock_db.collection.return_value = lookup
+        self.mock_fs.return_value = mock_db
+
+        request = self.factory.post(reverse('login'), {'identifier': 'no_user', 'password': 'p'})
+        add_session_to_request(request)
+        add_messages_to_request(request)
+
+        response = user_login(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse('login'))
+
+    def test_post_signin_fail(self):
+        self.mock_signin.return_value = None
+        request = self.factory.post(reverse('login'), {'identifier': 'u@e.com', 'password': 'wrong'})
+        add_session_to_request(request)
+        add_messages_to_request(request)
+
+        response = user_login(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse('login'))
+
+    def test_post_email_success(self):
+        self.mock_signin.return_value = {'localId': 'uid2'}
+        mock_db = MagicMock()
+        # user_doc.exists True
+        user_doc = MagicMock(exists=True, to_dict=MagicMock(return_value={
+            'role': 'user', 'username': 'uname'
+        }))
+        mock_db.collection.return_value.document.return_value.get.return_value = user_doc
+        self.mock_fs.return_value = mock_db
+
+        request = self.factory.post(reverse('login'), {'identifier': 'me@e.com', 'password': 'pw'})
+        add_session_to_request(request)
+        add_messages_to_request(request)
+
+        response = user_login(request)
+        self.assertEqual(request.session['firebase_uid'], 'uid2')
+        self.assertEqual(request.session['user_email'], 'me@e.com')
+        self.assertEqual(request.session['user_role'], 'user')
+        self.assertEqual(request.session['username'], 'uname')
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse('report_list'))
+
+    def test_post_username_success(self):
+        self.mock_signin.return_value = {'localId': 'uid3'}
+        mock_db = MagicMock()
+        lookup_ref = MagicMock()
+        doc_lookup = MagicMock(to_dict=MagicMock(return_value={'email': 'found@e.com'}))
+        lookup_ref.where.return_value.limit.return_value.stream.return_value = iter([doc_lookup])
+        # later user_doc.exists True
+        user_doc = MagicMock(exists=True, to_dict=MagicMock(return_value={
+            'role': 'worker', 'username': 'wname',
+            'jobs': [{'report_id': 'r1', 'role': 'worker'}]
+        }))
+        # Ensure both collection calls return lookup_ref
+        mock_db.collection.side_effect = lambda name: lookup_ref
+        lookup_ref.document.return_value.get.return_value = user_doc
+        self.mock_fs.return_value = mock_db
+
+        request = self.factory.post(reverse('login'), {'identifier': 'wname', 'password': 'pw'})
+        add_session_to_request(request)
+        add_messages_to_request(request)
+
+        response = user_login(request)
+        self.assertEqual(request.session['firebase_uid'], 'uid3')
+        self.assertEqual(request.session['user_email'], 'found@e.com')
+        self.assertEqual(request.session['user_role'], 'worker')
+        self.assertEqual(request.session['username'], 'wname')
+        self.assertEqual(request.session['jobs'], [{'report_id': 'r1', 'role': 'worker'}])
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse('report_list'))
+
+
+@override_settings(
+    MIDDLEWARE=[
+        'django.contrib.sessions.middleware.SessionMiddleware',
+        'django.contrib.messages.middleware.MessageMiddleware',
+    ],
+    MESSAGE_STORAGE='django.contrib.messages.storage.fallback.FallbackStorage'
+)
+class LogoutViewTests(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+    def test_logout_view(self):
+        request = self.factory.get(reverse('logout'))
+        add_session_to_request(request)
+        # seed session data
+        request.session['foo'] = 'bar'
+
+        response = logout_view(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse('login'))
+        self.assertEqual(dict(request.session), {})
