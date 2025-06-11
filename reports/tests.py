@@ -98,6 +98,7 @@ class AddReportTests(TestCase):
             {'form': form, 'error': 'Error saving the report'}
         )
 
+    
     def test_post_firebase_error(self):
         form = MagicMock(is_valid=MagicMock(return_value=True))
         saved_report = MagicMock()
