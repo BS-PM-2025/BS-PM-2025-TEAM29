@@ -31,6 +31,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',  # REST API Framework
     'reports',
+    'worker_backend',
+    'admin_backend',
     'user',
 ]
 
