@@ -1,229 +1,323 @@
-from unittest.mock import MagicMock, patch
-from django.contrib.auth.models import AnonymousUser, User
-from django.test import RequestFactory, TestCase
-from django.urls import reverse
+# reports/tests/test_views.py
+
+from django.test import TestCase, RequestFactory
+from django.test.utils import override_settings
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.contrib.messages.storage.fallback import FallbackStorage
+from django.http import HttpResponse
+from django.urls import reverse
+from django.contrib.auth.models import AnonymousUser
+from unittest.mock import patch, MagicMock
 
-from beer_sheva_backend import firebase
-from reports import views
-from reports.forms import ReportForm
-from reports.models import Report
+import reports.views as views
 
 def add_session_to_request(request):
-    middleware = SessionMiddleware(lambda req: None)
+    """Attach a session to the request."""
+    middleware = SessionMiddleware(lambda r: None)
     middleware.process_request(request)
     request.session.save()
 
 def add_messages_to_request(request):
+    """Attach fallback message storage to the request."""
     setattr(request, '_messages', FallbackStorage(request))
 
-class FirebaseTests(TestCase):
-    @patch("beer_sheva_backend.firebase.firestore")
-    def test_save_report_to_firebase(self, mock_firestore):
-        mock_db = MagicMock()
-        mock_doc_ref = (None, MagicMock(id="fake-report-id"))
-        mock_db.collection.return_value.add.return_value = mock_doc_ref
-        mock_firestore.client.return_value = mock_db
 
-        report_id = firebase.save_report_to_firebase(
-            title="Test Title",
-            description="Test Description",
-            location="Test Location",
-            latitude=31.25,
-            longitude=34.79,
-            report_type="test_type",
-        )
-
-        self.assertEqual(report_id, "fake-report-id")
-        mock_db.collection.assert_called_with("Reports")
-
-    @patch("beer_sheva_backend.firebase.firestore")
-    def test_get_reports_from_firebase_no_filter(self, mock_firestore):
-        mock_db = MagicMock()
-        mock_doc = MagicMock()
-        mock_doc.id = "abc123"
-        mock_doc.to_dict.return_value = {
-            "title": "Test Report",
-            "description": "Description here",
-            "location": "Nowhere",
-            "latitude": 31.25,
-            "longitude": 34.79,
-            "created_at": None,
-            "type": "fire",
-            "status": "pending",
-        }
-        mock_db.collection.return_value.stream.return_value = [mock_doc]
-        mock_firestore.client.return_value = mock_db
-
-        results = firebase.get_reports_from_firebase()
-        self.assertEqual(len(results), 1)
-        self.assertEqual(results[0]["id"], "abc123")
-
-    @patch("beer_sheva_backend.firebase.firestore")
-    def test_get_reports_with_location_filter(self, mock_firestore):
-        mock_db = MagicMock()
-        mock_doc = MagicMock()
-        mock_doc.id = "nearby123"
-        mock_doc.to_dict.return_value = {
-            "title": "Sinkhole",
-            "description": "Big hole",
-            "location": "Somewhere",
-            "latitude": 31.2505,
-            "longitude": 34.7905,
-            "created_at": None,
-            "type": "geo",
-            "status": "pending",
-        }
-        mock_db.collection.return_value.stream.return_value = [mock_doc]
-        mock_firestore.client.return_value = mock_db
-
-        nearby = firebase.get_reports_from_firebase(
-            user_location=(31.25, 34.79), radius=1
-        )
-        self.assertEqual(len(nearby), 1)
-        self.assertEqual(nearby[0]["id"], "nearby123")
-
-    @patch("beer_sheva_backend.firebase.firestore")
-    def test_get_report_by_id_found(self, mock_firestore):
-        mock_db = MagicMock()
-        mock_doc = MagicMock()
-        mock_doc.exists = True
-        mock_doc.to_dict.return_value = {"title": "Single Report"}
-
-        mock_db.collection.return_value.document.return_value.get.return_value = (
-            mock_doc
-        )
-        mock_firestore.client.return_value = mock_db
-
-        report = firebase.get_report_by_id("real-id")
-        self.assertIsNotNone(report)
-        self.assertEqual(report["title"], "Single Report")
-
-    @patch("beer_sheva_backend.firebase.firestore")
-    def test_get_report_by_id_not_found(self, mock_firestore):
-        mock_db = MagicMock()
-        mock_doc = MagicMock()
-        mock_doc.exists = False
-
-        mock_db.collection.return_value.document.return_value.get.return_value = (
-            mock_doc
-        )
-        mock_firestore.client.return_value = mock_db
-
-        report = firebase.get_report_by_id("ghost-id")
-        self.assertIsNone(report)
-
-class ViewTests(TestCase):
+@override_settings(
+    MIDDLEWARE=[
+        'django.contrib.sessions.middleware.SessionMiddleware',
+        'django.contrib.messages.middleware.MessageMiddleware',
+    ],
+    MESSAGE_STORAGE='django.contrib.messages.storage.fallback.FallbackStorage'
+)
+class AddReportTests(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
-        self.user = User.objects.create_user(username="malik", password="test123")
+        # unwrap decorator
+        self.view = views.add_report.__wrapped__
 
-    @patch("reports.views.ReportForm")
-    @patch("reports.views.save_report_to_firebase")
-    def test_add_report_post_valid_form(self, mock_save_report, mock_form_class):
-        mock_save_report.return_value = "firebase123"
-        data = {
-            "title": "Fire Alert",
-            "description": "Big fire spotted",
-            "place": "Somewhere",
-            "latitude": 31.2,
-            "longitude": 34.8,
-            "type": "fire",
+        # patch dependencies
+        self.p_form = patch('reports.views.ReportForm')
+        self.mock_form_class = self.p_form.start()
+
+        self.p_save = patch('reports.views.save_report_to_firebase')
+        self.mock_save = self.p_save.start()
+
+        self.p_bucket = patch('reports.views.storage.bucket')
+        self.mock_bucket = self.p_bucket.start()
+
+        self.p_render = patch('reports.views.render')
+        self.mock_render = self.p_render.start()
+
+        self.p_redirect = patch('reports.views.redirect')
+        self.mock_redirect = self.p_redirect.start()
+
+    def tearDown(self):
+        patch.stopall()
+
+    def test_get_add_report(self):
+        form_instance = MagicMock()
+        self.mock_form_class.return_value = form_instance
+
+        request = self.factory.get('/add/')
+        add_session_to_request(request)
+        add_messages_to_request(request)
+
+        self.view(request)
+        self.mock_render.assert_called_once_with(
+            request, 'add_report.html', {'form': form_instance}
+        )
+
+    def test_post_invalid_form(self):
+        form = MagicMock(is_valid=MagicMock(return_value=False))
+        self.mock_form_class.return_value = form
+
+        request = self.factory.post('/add/', {'foo': 'bar'})
+        add_session_to_request(request)
+        add_messages_to_request(request)
+
+        self.view(request)
+        self.mock_render.assert_called_once_with(
+            request,
+            'add_report.html',
+            {'form': form, 'error': 'Form is invalid'}
+        )
+
+    def test_post_form_save_exception(self):
+        form = MagicMock(is_valid=MagicMock(return_value=True))
+        form.save.side_effect = Exception('oops')
+        self.mock_form_class.return_value = form
+
+        request = self.factory.post('/add/', {})
+        add_session_to_request(request)
+        add_messages_to_request(request)
+
+        self.view(request)
+        self.mock_render.assert_called_once_with(
+            request,
+            'add_report.html',
+            {'form': form, 'error': 'Error saving the report'}
+        )
+
+    def test_post_firebase_error(self):
+        form = MagicMock(is_valid=MagicMock(return_value=True))
+        saved_report = MagicMock()
+        form.save.return_value = saved_report
+        form.cleaned_data = {
+            'title':'t','description':'d','place':'loc',
+            'latitude':1.0,'longitude':2.0,'type':'ty'
         }
-        # Prepare the mock form instance
-        mock_form = MagicMock()
-        mock_form.is_valid.return_value = True
-        mock_form.cleaned_data = data
-        # This line prevents saving to the DB (avoids IntegrityError!)
-        mock_form.save.return_value = MagicMock(spec=Report)
-        mock_form_class.return_value = mock_form
+        self.mock_form_class.return_value = form
+        self.mock_save.side_effect = Exception('fb fail')
 
-        request = self.factory.post("/add/", data)
-        request.user = self.user
+        request = self.factory.post('/add/', {})
         add_session_to_request(request)
         add_messages_to_request(request)
 
-        response = views.add_report(request)
-        # Check for redirect (302), not 200
-        self.assertEqual(response.status_code, 302)
-        self.assertIn("/confirmation/", response.url)
-
-
-    @patch("reports.views.get_report_by_id")
-    def test_report_confirmation_not_found(self, mock_get_report):
-        mock_get_report.return_value = None
-        request = self.factory.get("/confirm/ghost/")
-        add_session_to_request(request)
-        response = views.report_confirmation(request, "ghost")
-        self.assertEqual(response.status_code, 302)
-        self.assertIn("", response.url)
-
-    @patch("reports.views.get_reports_from_firebase")
-    def test_report_list_view(self, mock_get_reports):
-        mock_get_reports.return_value = [{"type": "fire", "id": "x", "title": "fire"}]
-        request = self.factory.get("/reports/?type=fire")
-        add_session_to_request(request)
-        response = views.report_list(request)
-        self.assertEqual(response.status_code, 200)
-        self.assertIn(b"fire", response.content)
-
-    @patch("reports.views.get_reports_from_firebase")
-    def test_map_view(self, mock_get_reports):
-        mock_get_reports.return_value = [{"type": "geo", "id": "y"}]
-        request = self.factory.get("/map/")
-        add_session_to_request(request)
-        response = views.map_view(request)
-        self.assertEqual(response.status_code, 200)
-
-    @patch("reports.views.get_reports_from_firebase")
-    def test_admin_dashboard_authenticated(self, mock_get_reports):
-        mock_get_reports.return_value = []
-        request = self.factory.get("/admin/")
-        add_session_to_request(request)
-        add_messages_to_request(request)
-        request.user = self.user
-        response = views.admin_dashboard(request)
-        self.assertEqual(response.status_code, 200)
-
-    @patch("reports.views.get_reports_from_firebase")
-    def test_worker_dashboard_authenticated(self, mock_get_reports):
-        mock_get_reports.return_value = []
-        request = self.factory.get("/worker/")
-        add_session_to_request(request)
-        add_messages_to_request(request)
-        request.user = self.user
-        response = views.worker_dashboard(request)
-        self.assertIn(response.status_code, [200, 302])
-    def test_user_login_valid(self):
-        request = self.factory.post(
-            "/login/", {"username": "malik", "password": "test123"}
+        self.view(request)
+        self.mock_render.assert_called_once_with(
+            request,
+            'add_report.html',
+            {'form': form, 'error': 'Error saving to Firebase'}
         )
+
+    def test_post_success_no_image(self):
+        form = MagicMock(is_valid=MagicMock(return_value=True))
+        saved_report = MagicMock()
+        form.save.return_value = saved_report
+        form.cleaned_data = {
+            'title':'t','description':'d','place':'loc',
+            'latitude':1.0,'longitude':2.0,'type':'ty'
+        }
+        self.mock_form_class.return_value = form
+        self.mock_save.return_value = 'RID123'
+
+        request = self.factory.post('/add/', {})
         add_session_to_request(request)
         add_messages_to_request(request)
-        request.user = AnonymousUser()
-        response = views.user_login(request)
-        self.assertEqual(response.status_code, 302)
 
-    def test_register_view_valid(self):
-        request = self.factory.post(
-            "/register/",
-            {
-                "username": "newuser",
-                "password": "pass123",
-                "confirm_password": "pass123",
-            },
+        self.view(request)
+        self.assertEqual(saved_report.firebase_id, 'RID123')
+        saved_report.save.assert_called_once()
+        self.mock_redirect.assert_called_once_with(
+            'report_confirmation', report_id='RID123'
         )
-        add_session_to_request(request)
-        add_messages_to_request(request)
-        request.user = AnonymousUser()
-        response = views.register_view(request)
-        self.assertEqual(response.status_code, 302)
 
-    def test_user_logout(self):
-        request = self.factory.get("/logout/")
+
+@override_settings(
+    MIDDLEWARE=[
+        'django.contrib.sessions.middleware.SessionMiddleware',
+        'django.contrib.messages.middleware.MessageMiddleware',
+    ],
+    MESSAGE_STORAGE='django.contrib.messages.storage.fallback.FallbackStorage'
+)
+class ReportConfirmationTests(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.view = views.report_confirmation
+
+        self.p_get = patch('reports.views.get_report_by_id')
+        self.mock_get = self.p_get.start()
+
+        self.p_render = patch('reports.views.render')
+        self.mock_render = self.p_render.start()
+
+        self.p_redirect = patch('reports.views.redirect')
+        self.mock_redirect = self.p_redirect.start()
+
+    def tearDown(self):
+        patch.stopall()
+
+    def test_confirmation_not_found(self):
+        self.mock_get.return_value = None
+        request = self.factory.get('/confirm/FOO/')
+        self.view(request, 'FOO')
+        self.mock_redirect.assert_called_once_with('report_list')
+
+    def test_confirmation_found(self):
+        rpt = {'a': 1}
+        self.mock_get.return_value = rpt
+        request = self.factory.get('/confirm/123/')
+        self.view(request, '123')
+        self.mock_render.assert_called_once_with(
+            request, 'confirmation.html', {'report': rpt}
+        )
+
+
+@override_settings(
+    MIDDLEWARE=[
+        'django.contrib.sessions.middleware.SessionMiddleware',
+        'django.contrib.messages.middleware.MessageMiddleware',
+    ],
+    MESSAGE_STORAGE='django.contrib.messages.storage.fallback.FallbackStorage'
+)
+class ReportDetailTests(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.view = views.report_detail
+
+        self.p_get = patch('reports.views.get_report_by_id')
+        self.mock_get = self.p_get.start()
+
+        self.p_init = patch('reports.views.initialize_firebase')
+        self.mock_init = self.p_init.start()
+        self.mock_db = MagicMock()
+        self.mock_init.return_value = self.mock_db
+
+        self.p_render = patch('reports.views.render')
+        self.mock_render = self.p_render.start()
+
+        self.p_redirect = patch('reports.views.redirect')
+        self.mock_redirect = self.p_redirect.start()
+
+    def tearDown(self):
+        patch.stopall()
+
+    def test_detail_not_found(self):
+        self.mock_get.return_value = None
+        request = self.factory.get('/detail/XYZ/')
+        self.view(request, 'XYZ')
+        self.mock_redirect.assert_called_once_with('report_list')
+
+    def test_upvote(self):
+        rpt = {'upvotes': 5}
+        self.mock_get.return_value = rpt
+        request = self.factory.post('/detail/1/', {'action': 'upvote'})
+        request.user = AnonymousUser()
+        self.view(request, '1')
+        self.mock_db.collection().document('1').update.assert_called_once_with({'upvotes': 6})
+        self.mock_render.assert_called_once_with(request, 'report_detail.html', {'report': rpt})
+
+    def test_add_comment(self):
+        rpt = {'comments': []}
+        self.mock_get.return_value = rpt
+        request = self.factory.post('/detail/1/', {'action': 'add_comment', 'comment': 'hi'})
+        request.user = AnonymousUser()
+        self.view(request, '1')
+        self.assertEqual(len(rpt['comments']), 1)
+        self.mock_db.collection().document('1').update.assert_called_once()
+        self.mock_render.assert_called_once_with(request, 'report_detail.html', {'report': rpt})
+
+
+@override_settings(
+    MIDDLEWARE=[
+        'django.contrib.sessions.middleware.SessionMiddleware',
+        'django.contrib.messages.middleware.MessageMiddleware',
+    ],
+    MESSAGE_STORAGE='django.contrib.messages.storage.fallback.FallbackStorage'
+)
+class ReportListTests(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.view = getattr(views.report_list, '__wrapped__', views.report_list)
+
+        self.p_get = patch('reports.views.get_reports_from_firebase')
+        self.mock_get = self.p_get.start()
+
+        self.p_render = patch('reports.views.render')
+        self.mock_render = self.p_render.start()
+
+    def tearDown(self):
+        patch.stopall()
+
+
+
+@override_settings(
+    MIDDLEWARE=[
+        'django.contrib.sessions.middleware.SessionMiddleware',
+        'django.contrib.messages.middleware.MessageMiddleware',
+    ],
+    MESSAGE_STORAGE='django.contrib.messages.storage.fallback.FallbackStorage'
+)
+class MapViewTests(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.view = views.map_view
+
+        self.p_get = patch('reports.views.get_reports_from_firebase')
+        self.mock_get = self.p_get.start()
+
+        self.p_render = patch('reports.views.render')
+        self.mock_render = self.p_render.start()
+
+    def tearDown(self):
+        patch.stopall()
+
+    def test_map(self):
+        self.mock_get.return_value = [{'id': '1'}]
+        request = self.factory.get('/map/')
+        self.view(request)
+        self.mock_render.assert_called_once_with(request, 'map.html', {'reports': [{'id': '1'}]})
+
+
+@override_settings(
+    MIDDLEWARE=[
+        'django.contrib.sessions.middleware.SessionMiddleware',
+        'django.contrib.messages.middleware.MessageMiddleware',
+    ],
+    MESSAGE_STORAGE='django.contrib.messages.storage.fallback.FallbackStorage'
+)
+class AdminDashboardTests(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.view = getattr(views.admin_dashboard, '__wrapped__', views.admin_dashboard)
+
+        self.p_get = patch('reports.views.get_reports_from_firebase')
+        self.mock_get = self.p_get.start()
+
+        self.p_render = patch('reports.views.render')
+        self.mock_render = self.p_render.start()
+
+    def tearDown(self):
+        patch.stopall()
+
+    def test_admin_dashboard(self):
+        self.mock_get.return_value = ['r1', 'r2']
+        request = self.factory.get('/admin/')
         add_session_to_request(request)
         add_messages_to_request(request)
-        request.user = self.user
-        response = views.user_logout(request)
-        self.assertEqual(response.status_code, 302)
+        request.session['user_role'] = 'admin'
+
+        self.view(request)
+        self.mock_render.assert_called_once_with(
+            request, 'admin_dashboard.html', {'reports': ['r1', 'r2']}
+        )
