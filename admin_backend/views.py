@@ -2,12 +2,38 @@ from django.core.paginator import Paginator
 from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
 from beer_sheva_backend.firebase import initialize_firebase
+from django.urls import reverse
+
+MOST_DANGEROUS_TYPES = [
+    "Road", "Accident", "Flooding", "WaterLeak", "Electricity",
+    "Pothole", "Infrastructure", "Vandalism"
+]
+TYPE_HEBREW_MAP = {
+    "Road": "נזק לכביש",
+    "Accident": "תאונות",
+    "Waste": "ניהול פסולת",
+    "TrafficSignal": "בעיות רמזורים",
+    "Infrastructure": "תשתית ציבורית",
+    "Streetlight": "תאורת רחוב",
+    "Pothole": "בורות בכביש",
+    "Parking": "בעיות חנייה",
+    "Flooding": "הצפות",
+    "Graffiti": "גרפיטי",
+    "Animal": "בעיות עם בעלי חיים",
+    "Noise": "רעש",
+    "Vandalism": "ונדליזם",
+    "WaterLeak": "דליפת מים",
+    "Electricity": "בעיות חשמל",
+    "Playground": "בעיות במגרש משחקים",
+    "PublicRestroom": "שירותים ציבוריים",
+    "tree branches": "ענפי עצים",
+    "Garden care": "טיפול בגנים",
+}
 
 db = initialize_firebase()
 
 @csrf_exempt
 def admin_dashboard(request):
-    # Handle form actions (delete, assign, update)
     if request.method == "POST":
         action = request.POST.get("action")
         report_id = request.POST.get("report_id")
@@ -53,29 +79,39 @@ def admin_dashboard(request):
                 "email": data.get("email", ""),
             })
 
-    # Get reports
+    # Get reports, collect all (for preview), sort dangerous ones first
     reports_ref = db.collection("Reports").stream()
     reports = []
     for doc in reports_ref:
         data = doc.to_dict()
         data["id"] = doc.id
+        # Add Hebrew type mapping for the template
+        data["type_he"] = TYPE_HEBREW_MAP.get(data.get("type"), "-")
         reports.append(data)
 
-    # Sort reports by created_at (if exists, otherwise fallback)
+    # Dangerous first, then others by date
+    def is_dangerous(report):
+        return report.get("type") in MOST_DANGEROUS_TYPES
+
     def get_created_at(report):
         v = report.get("created_at")
         if not v:
             return 0
         if hasattr(v, "timestamp"):
             return v.timestamp()
-        # Try to parse string
         from datetime import datetime
         try:
             return datetime.fromisoformat(str(v)).timestamp()
         except Exception:
             return 0
 
-    reports = sorted(reports, key=get_created_at, reverse=True)
+    reports = sorted(
+        reports,
+        key=lambda r: (
+            0 if is_dangerous(r) else 1,  # dangerous first
+            -get_created_at(r)
+        )
+    )
 
     paginator = Paginator(reports, page_size)
     page_obj = paginator.get_page(page)
@@ -85,4 +121,24 @@ def admin_dashboard(request):
         "users": users,
         "page": page_obj.number,
         "page_range": paginator.page_range,
+        "type_hebrew_map": TYPE_HEBREW_MAP,
+        "dangerous_types": [TYPE_HEBREW_MAP[t] for t in MOST_DANGEROUS_TYPES if t in TYPE_HEBREW_MAP],
     })
+
+
+def admin_report_details(request, report_id):
+    # Show all info for this report
+    doc = db.collection("Reports").document(report_id).get()
+    if not doc.exists:
+        return render(request, "admin_backend/report_details.html", {"not_found": True})
+
+    report = doc.to_dict()
+    report["id"] = doc.id
+    report["type_he"] = TYPE_HEBREW_MAP.get(report.get("type"), "-")
+
+    return render(request, "admin_backend/report_details.html", {
+        "report": report,
+        "type_hebrew_map": TYPE_HEBREW_MAP,
+    })
+
+
