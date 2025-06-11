@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>פרטי דיווח</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://fonts.googleapis.com/css2?family=David:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'David', sans-serif; background: #ede7f6; margin: 0; }
+    .container { max-width: 700px; margin: 32px auto; background: #fff; border-radius: 28px; box-shadow: 0 6px 36px #8881e117; padding: 32px 28px 40px 28px; }
+    h2 { color: #007bff; font-size: 2em; margin-bottom: 24px; }
+    .details-row { margin-bottom: 14px; }
+    .label { color: #007bff; font-weight: 600; display:inline-block; min-width:120px; }
+    .value { color: #222; font-size: 1.12em; }
+    .section-title { font-size:1.1em; margin-top:19px; font-weight:700; color:#1976d2; }
+    .array-block { background: #ede7f6; border-radius: 12px; padding: 11px 15px; margin-bottom: 7px; }
+    .back-link { display:inline-block; margin-bottom:14px; color:#512da8; text-decoration:underline; font-weight:600;}
+    .badge { display:inline-block; padding:7px 19px; border-radius:22px; color:#fff; font-weight:600;}
+    .badge.assigned { background: #43a047;}
+    .badge.unassigned { background:#e74c3c;}
+    .badge.status-new { background: #1976d2;}
+    .badge.status-pending { background: #ffa726;}
+    .badge.status-done { background: #388e3c;}
+    .badge.status-other { background: #757575;}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="{% url 'report_list' %}" class="back-link">← חזרה לרשימת הדיווחים</a>
+    <h2>פרטי דיווח</h2>
+    <div class="details-row"><span class="label">כותרת:</span> <span class="value">{{ report.title }}</span></div>
+    <div class="details-row"><span class="label">סוג:</span> <span class="value">{{ report.type }}</span></div>
+    <div class="details-row"><span class="label">סטטוס:</span> <span class="value">{{ report.status }}</span></div>
+    <div class="details-row"><span class="label">מיקום:</span> <span class="value">{{ report.location }}</span></div>
+    <div class="details-row"><span class="label">קו רוחב:</span> <span class="value">{{ report.latitude }}</span></div>
+    <div class="details-row"><span class="label">קו אורך:</span> <span class="value">{{ report.longitude }}</span></div>
+    <div class="details-row"><span class="label">דוא״ל מדווח:</span> <span class="value">{{ report.reporter_email }}</span></div>
+    <div class="details-row"><span class="label">עובד משובץ:</span> <span class="value">{{ report.assigned_worker_id }}</span></div>
+    <div class="details-row"><span class="label">תיאור:</span> <span class="value">{{ report.description }}</span></div>
+    <div class="details-row"><span class="label">תאריך יצירה:</span> <span class="value">{{ report.created_at }}</span></div>
+
+    {% if report.equipment_issues %}
+      <div class="section-title">בעיות ציוד</div>
+      {% for item in report.equipment_issues %}
+        <div class="array-block">
+          <div><span class="label">טקסט:</span> <span class="value">{{ item.text|default:"-" }}</span></div>
+          <div><span class="label">זמן:</span> <span class="value">{{ item.timestamp|default:"-" }}</span></div>
+          <div><span class="label">עובד:</span> <span class="value">{{ item.worker_id|default:"-" }}</span></div>
+        </div>
+      {% endfor %}
+    {% endif %}
+    {% if report.internal_notes %}
+      <div class="section-title">הערות פנימיות</div>
+      {% for note in report.internal_notes %}
+        <div class="array-block">
+          <div><span class="label">הערה:</span> <span class="value">{{ note.note|default:"-" }}</span></div>
+          <div><span class="label">זמן:</span> <span class="value">{{ note.timestamp|default:"-" }}</span></div>
+          <div><span class="label">עובד:</span> <span class="value">{{ note.worker_id|default:"-" }}</span></div>
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    <hr style="margin:28px 0;">
+<!-- הצבעה על חשיבות הדיווח -->
+<div style="margin-bottom: 18px;">
+  <form method="post" style="display:inline;">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="upvote">
+    <button type="submit"
+            style="background: #ffeb3b; color: #444; border:none; border-radius:10px; padding:8px 23px; font-size:1.09em; font-weight:700; box-shadow: 0 2px 6px #007bff28;">
+      👍 הדגש חשיבות ({{ report.upvotes|default:"0" }})
+    </button>
+  </form>
+</div>
+
+<!-- הגשת תגובה -->
+<div style="margin-bottom:28px;">
+  <form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="add_comment">
+    <div style="margin-bottom: 9px;">
+      <label for="comment" class="label">הגב על הדיווח:</label>
+      <textarea id="comment" name="comment" rows="2" style="width:95%; padding:8px; border-radius:8px; border:1px solid #bbb;"></textarea>
+    </div>
+    <button type="submit" style="background:#007bff; color:#fff; border:none; border-radius:8px; padding:8px 22px; font-weight:600;">שלח תגובה</button>
+  </form>
+</div>
+
+<!-- הצגת כל התגובות -->
+{% if report.comments %}
+  <div class="section-title">תגובות משתמשים</div>
+  {% for comment in report.comments %}
+    <div class="array-block" style="margin-bottom:10px;">
+      <div style="font-size:1.08em;">{{ comment.text }}</div>
+      <div style="color:#888; font-size:0.98em;">🗓 {{ comment.timestamp }} | 👤 {{ comment.user }}</div>
+    </div>
+  {% endfor %}
+{% endif %}
+
+
+  </div>
+</body>
+</html>
