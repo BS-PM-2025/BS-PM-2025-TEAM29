@@ -114,22 +114,66 @@
     <noscript><button type="submit" class="btn btn-primary">סנן</button></noscript>
 </form>
 <body>
+
+
+
+    <div class="fixed-top-bar" style="position: fixed; top: 22px; right: 30px; z-index: 9999;">
+        <a href="{% url 'logout_view' %}"
+           class="btn btn-danger font-weight-bold"
+           style="font-size: 1.07rem; padding: 9px 22px; border-radius: 12px; letter-spacing: 1px;">
+            התנתק
+        </a>
+    </div>
+    <div style="position: fixed; top: 22px; left: 190px; z-index: 9999; display:flex; gap:12px;">
+        <a href="{% url 'contact_us' %}"
+   class="btn btn-success font-weight-bold"
+   style="font-size:1.07rem; padding:9px 22px; border-radius:12px; letter-spacing:1px; margin-left: 10px;">
+    צור קשר
+</a>
+  {% if request.session.user_role == "admin" %}
+    <a href="{% url 'admin-dashboard' %}"
+       class="btn btn-warning font-weight-bold"
+       style="font-size:1.09rem; padding:9px 22px; border-radius:12px; letter-spacing:1px;">
+      ניהול מנהל
+    </a>
+    <a href="{% url 'worker-dashboard' %}"
+       class="btn btn-primary font-weight-bold"
+       style="font-size:1.09rem; padding:9px 22px; border-radius:12px; letter-spacing:1px;">
+      ניהול עובד
+    </a>
+  {% elif request.session.user_role == "worker" %}
+    <a href="{% url 'worker-dashboard' %}"
+       class="btn btn-primary font-weight-bold"
+       style="font-size:1.09rem; padding:9px 22px; border-radius:12px; letter-spacing:1px;">
+      ניהול עובד
+    </a>
+  {% endif %}
+</div>
+
     <div class="container">
-        <div class="fixed-top-bar">
-             <a href="{% url 'login' %}" class="btn btn-primary">login</a>
-        </div>
         <h1>רשימת דיווחים</h1>
 
         <a href="{% url 'add_report' %}" class="add-report-btn">הוסף דיווח חדש</a>
 
-        {% for report in reports_data %}
-        <div class="report-item">
+<div class="row" dir="rtl">
+    {% for report in page_obj %}
+    <div class="col-12 col-md-6 col-lg-4 d-flex">
+        <div class="report-item flex-fill">
             <h5>{{ report.title }}</h5>
-            <p>תיאור: {{ report.description }}</p>
-            <p class="location">מיקום: {{ report.location }}</p>
-            <p>סוג דיווח: {{ report.type_name }}</p>
+            <p><strong>תיאור:</strong> {{ report.description }}</p>
+            <p><strong>מיקום:</strong> {{ report.location }}</p>
+            <p><strong>סוג דיווח:</strong> {{ report.type_name }}</p>
+            <p><strong>סטטוס:</strong> {{ report.status }}</p>
+            <p><strong>דוא״ל:</strong> {{ report.reporter_email }}</p>
+            <p>
+                <a href="{% url 'report_detail' report.id %}" class="btn btn-info btn-sm">צפה בפרטי דיווח</a>
+            </p>
         </div>
-        {% endfor %}
+    </div>
+    {% endfor %}
+</div>
+
+
 
         <div class="form-group">
             <label for="map" class="form-label">מפת הדיווחים</label>
@@ -183,7 +227,8 @@
                             <strong>{{ report.title|escapejs }}</strong><br>
                             <span>תיאור:</span> <span style="display:inline-block; direction: rtl;">{{ report.description|escapejs }}</span><br>
                             <span>מיקום:</span> <span style="display:inline-block; direction: rtl;">{{ report.location|escapejs }}</span><br>
-                            <span>סוג דיווח:</span> <span style="display:inline-block; direction: rtl;">{{ report.type_name|escapejs }}</span>
+                           <span>סוג דיווח:</span> <span style="display:inline-block; direction: rtl;">{{ report.type_name|escapejs }}</span>
+
                         </div>`
                 });
 
