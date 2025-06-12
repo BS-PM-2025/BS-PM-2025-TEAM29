@@ -1,0 +1,302 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>דיווחים | Worker Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="{% static 'css/worker/worker_dashboard.css' %}">
+</head>
+<body>
+  <div class="container">
+    <h1>👷‍♂️ דיווחים שהוקצו אליך</h1>
+    
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>🆔 ID</th>
+            <th>📝 כותרת</th>
+            <th>📊 סטטוס</th>
+            <th>✅ סמן כהושלם</th>
+            <th>🚪 עזוב משימה</th>
+            <th>🔧 ציוד חסר/תקול</th>
+            <th>🛡️ הנחיות בטיחות</th>
+            <th>🗺️ ניווט</th>
+            <th>📋 הערות פנימיות</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for report in reports %}
+          <tr>
+            <td><strong>{{ report.id }}</strong></td>
+            <td>{{ report.title }}</td>
+            <td>
+              {% if report.status == "חדש" or not report.status %}
+                <span class="badge status-new">🆕 חדש</span>
+              {% elif report.status == "בתהליך" or report.status == "pending" %}
+                <span class="badge status-pending">⏳ בתהליך</span>
+              {% elif report.status == "הושלם" or report.status == "done" %}
+                <span class="badge status-done">✅ הושלם</span>
+              {% else %}
+                <span class="badge status-other">{{ report.status }}</span>
+              {% endif %}
+            </td>
+            <td class="actions">
+              {% if report.status != "done" and report.status != "הושלם" %}
+              <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="mark_done">
+                <input type="hidden" name="report_id" value="{{ report.id }}">
+                <button type="submit">✅ סמן כהושלם</button>
+              </form>
+              {% else %}
+                <span class="badge status-done">✅ הושלם</span>
+              {% endif %}
+            </td>
+            <td class="actions">
+              {% if report.status != "done" and report.status != "הושלם" %}
+              <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="leave_job">
+                <input type="hidden" name="report_id" value="{{ report.id }}">
+                <button type="submit" class="leave-btn">🚪 עזוב משימה</button>
+              </form>
+              {% else %}
+                <span style="color:#aaa;">-</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="equipment-section">
+                <div class="section-header">🔧 דיווח ציוד</div>
+                <form method="post" style="margin-bottom:10px;">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="add_equipment_issue">
+                  <input type="hidden" name="report_id" value="{{ report.id }}">
+                  <input type="text" name="equipment_issue" placeholder="דווח ציוד חסר/תקול" class="input-field">
+                  <button type="submit">📝 דווח</button>
+                </form>
+                <ul class="equip-list">
+                  {% for issue in report.equipment_issues %}
+                    <li>🔧 {{ issue.text }} <small style="color:#888;">({{ issue.timestamp }})</small></li>
+                  {% endfor %}
+                </ul>
+              </div>
+            </td>
+            <td>
+              <div class="safety-info">🛡️ {{ report.safety_instructions|default:"אין הנחיות מיוחדות" }}</div>
+            </td>
+            <td>
+              {% if report.latitude and report.longitude %}
+                <a class="map-nav-link" href="{{ report.google_maps_link }}" target="_blank">
+                  🗺️ נווט עם Google Maps
+                </a>
+              {% else %}
+                <span style="color: #aaa;">❌ אין מיקום</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="notes-section">
+                <div class="section-header">📋 הערות פנימיות</div>
+                <form method="post" style="margin-bottom:10px;">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="add_internal_note">
+                  <input type="hidden" name="report_id" value="{{ report.id }}">
+                  <input type="text" name="internal_note" placeholder="הוסף הערה פנימית" class="input-field">
+                  <button type="submit">📝 הוסף</button>
+                </form>
+                <ul class="note-list">
+                  {% for note in report.internal_notes %}
+                    <li>💭 {{ note.note }} <small style="color:#888;">({{ note.timestamp }})</small></li>
+                  {% endfor %}
+                </ul>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="9" class="empty-state">
+              📭 אין דיווחים להצגה
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- MAP OF CURRENT REPORTS -->
+    <div class="map-section">
+      <h2>🗺️ מפה של כל הדיווחים בדף זה</h2>
+      <div id="worker-map">
+        <div class="loading">
+          טוען מפה...
+          <div class="spinner"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pagination Controls -->
+    <div class="pagination">
+      {% for num in page_range %}
+        {% if num == page %}
+          <button class="selected">{{ num }}</button>
+        {% else %}
+          <form method="get" style="display:inline;">
+            <input type="hidden" name="page" value="{{ num }}">
+            <button type="submit">{{ num }}</button>
+          </form>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Google Maps Script -->
+  <script>
+    function initWorkerMap() {
+      // إخفاء رسالة التحميل
+      const loadingDiv = document.querySelector('.loading');
+      if (loadingDiv) {
+        loadingDiv.style.display = 'none';
+      }
+
+      var map = new google.maps.Map(document.getElementById('worker-map'), {
+        center: { lat: 31.2518, lng: 34.7913 },
+        zoom: 12,
+        styles: [
+          {
+            featureType: "water",
+            elementType: "geometry",
+            stylers: [{ color: "#42a5f5" }]
+          },
+          {
+            featureType: "landscape",
+            elementType: "geometry",
+            stylers: [{ color: "#f5f5f5" }]
+          },
+          {
+            featureType: "road",
+            elementType: "geometry",
+            stylers: [{ color: "#ffffff" }]
+          },
+          {
+            featureType: "poi",
+            elementType: "geometry",
+            stylers: [{ color: "#e8f5e8" }]
+          }
+        ]
+      });
+
+      var reports = {{ map_reports|safe }};
+      reports.forEach(function(report) {
+        if (report.latitude && report.longitude) {
+          var marker = new google.maps.Marker({
+            position: {lat: report.latitude, lng: report.longitude},
+            map: map,
+            title: report.title,
+            icon: {
+              path: google.maps.SymbolPath.CIRCLE,
+              scale: 12,
+              fillColor: getMarkerColor(report.status),
+              fillOpacity: 1,
+              strokeColor: "#ffffff",
+              strokeWeight: 3
+            }
+          });
+
+          var info = new google.maps.InfoWindow({
+            content: `<div style="font-family:'Cairo',sans-serif;font-size:15px;direction:rtl;text-align:right;max-width:250px;">
+              <strong style="color:#1565c0;">🏷️ ${report.title}</strong><br>
+              <span style="color:#666;">📍 מיקום: ${report.latitude.toFixed(5)}, ${report.longitude.toFixed(5)}</span><br>
+              <span style="color:#666;">📝 תיאור: ${report.description || 'אין תיאור'}</span><br>
+              <div style="margin-top:10px;">
+                <a href="https://www.google.com/maps/dir/?api=1&destination=${report.latitude},${report.longitude}" 
+                   target="_blank" 
+                   style="background:#42a5f5;color:white;padding:5px 10px;border-radius:5px;text-decoration:none;font-weight:600;">
+                  🗺️ נווט בגוגל מפות
+                </a>
+              </div>
+            </div>`
+          });
+
+          marker.addListener('click', function() { 
+            info.open(map, marker); 
+          });
+
+          // تأثير hover للماركر
+          marker.addListener("mouseover", () => {
+            marker.setIcon({
+              path: google.maps.SymbolPath.CIRCLE,
+              scale: 15,
+              fillColor: getMarkerColor(report.status),
+              fillOpacity: 1,
+              strokeColor: "#ffffff",
+              strokeWeight: 4
+            });
+          });
+
+          marker.addListener("mouseout", () => {
+            marker.setIcon({
+              path: google.maps.SymbolPath.CIRCLE,
+              scale: 12,
+              fillColor: getMarkerColor(report.status),
+              fillOpacity: 1,
+              strokeColor: "#ffffff",
+              strokeWeight: 3
+            });
+          });
+        }
+      });
+    }
+
+    function getMarkerColor(status) {
+      switch(status) {
+        case "חדש": case "new": return "#1976d2";
+        case "בתהליך": case "pending": return "#ffa726";
+        case "הושלם": case "done": return "#388e3c";
+        default: return "#757575";
+      }
+    }
+
+    function loadMapScript() {
+      var script = document.createElement('script');
+      script.src = "https://maps.googleapis.com/maps/api/js?key=AIzaSyDlCLAutdnujjoTEDdpYwIUvOSTluY2rRQ&callback=initWorkerMap";
+      script.async = true;
+      script.defer = true;
+      script.onerror = function() {
+        const mapDiv = document.getElementById('worker-map');
+        mapDiv.innerHTML = `
+          <div style="display: flex; justify-content: center; align-items: center; height: 100%; color: #e74c3c; font-size: 1.1em;">
+            ❌ לא ניתן לטעון את המפה. אנא בדוק את החיבור לאינטרנט.
+          </div>
+        `;
+      };
+      document.body.appendChild(script);
+    }
+
+    // تحسين تجربة المستخدم
+    document.addEventListener('DOMContentLoaded', function() {
+      // تحميل الخريطة
+      loadMapScript();
+
+      // تأثيرات التركيز على الحقول
+      const inputs = document.querySelectorAll('.input-field');
+      inputs.forEach(input => {
+        input.addEventListener('focus', function() {
+          this.style.transform = 'scale(1.02)';
+          this.style.transition = 'transform 0.2s ease';
+        });
+        
+        input.addEventListener('blur', function() {
+          this.style.transform = 'scale(1)';
+        });
+      });
+    });
+
+    window.onload = function() {
+      if (typeof loadMapScript === 'function') {
+        loadMapScript();
+      }
+    };
+  </script>
+</body>
+</html>
