@@ -93,7 +93,7 @@ def report_confirmation(request, report_id):
 
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
-
+##BSPM25T29-5
 @csrf_exempt
 def report_detail(request, report_id):
     report = get_report_by_id(report_id)
