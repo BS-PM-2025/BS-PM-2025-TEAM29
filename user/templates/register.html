@@ -140,13 +140,30 @@
         </label>
         <input type="password" name="password" placeholder="בחר סיסמה" required>
       </div>
-
       <div class="form-group">
         <label>אימות סיסמה
           <span class="help-icon" data-tooltip="יש להקליד שוב את הסיסמה כדי לוודא">!</span>
         </label>
         <input type="password" name="confirm_password" placeholder="הקלד שוב את הסיסמה" required>
       </div>
+
+<div class="form-group" style="margin-bottom: 22px;">
+  <label style="display:block; font-weight:bold; margin-bottom:6px;">סוג משתמש:</label>
+  <div style="display: flex; flex-direction: row-reverse; gap: 22px; align-items: center;">
+    <label for="role_user" style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+      <input type="radio" id="role_user" name="role" value="user" checked
+        style="accent-color:#007bff; width:17px; height:17px;">
+      <span style="font-size:1rem;">משתמש רגיל</span>
+    </label>
+    <label for="role_worker" style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+      <input type="radio" id="role_worker" name="role" value="worker"
+        style="accent-color:#28a745; width:17px; height:17px;">
+      <span style="font-size:1rem;">עובד עירייה</span>
+    </label>
+  </div>
+</div>
+
+
 
       <button type="submit">הירשם</button>
     </form>
