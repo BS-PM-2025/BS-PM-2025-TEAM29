@@ -32,13 +32,14 @@ type_dict = dict(REPORT_TYPES)
 from firebase_admin import storage
 import uuid
 
-@firebase_login_required
+
 def add_report(request):
+    import sys, traceback
     if request.method == 'POST':
-        form = ReportForm(request.POST, request.FILES)
+        form = ReportForm(request.POST)
         if form.is_valid():
             try:
-                report = form.save()
+                # Extract the data from the form
                 title = form.cleaned_data['title']
                 description = form.cleaned_data['description']
                 location = form.cleaned_data['place']
@@ -47,39 +48,34 @@ def add_report(request):
                 report_type = form.cleaned_data['type']
                 reporter_email = request.session.get('user_email', 'anonymous')
 
-                # Upload image to Firebase Storage
-                image_url = None
-                if 'image' in request.FILES:
-                    image_file = request.FILES['image']
-                    file_extension = image_file.name.split('.')[-1]
-                    image_name = f"reports/{uuid.uuid4()}.{file_extension}"
-                    bucket = storage.bucket()
-                    blob = bucket.blob(image_name)
-                    blob.upload_from_file(image_file, content_type=image_file.content_type)
-                    blob.make_public()
-                    image_url = blob.public_url
+                print(f"DEBUG: Submitting to Firebase with title={title}, description={description}, "
+                      f"location={location}, latitude={latitude}, longitude={longitude}, "
+                      f"type={report_type}, reporter_email={reporter_email}")
 
-                # Save to Firebase with image URL
                 try:
                     report_id = save_report_to_firebase(
-                        title, description, location, latitude, longitude, report_type,
-                        reporter_email, image_url=image_url
+                        title, description, location, latitude, longitude, report_type, reporter_email
                     )
+                    print(f"DEBUG: Saved report to Firebase with id: {report_id}")
                 except Exception as e:
+                    print("DEBUG: Error saving to Firebase:", e)
+                    traceback.print_exc(file=sys.stdout)
                     return render(request, 'add_report.html', {'form': form, 'error': 'Error saving to Firebase'})
 
-                report.firebase_id = report_id
-                report.save()
                 messages.success(request, 'Your report has been submitted successfully!')
                 return redirect('report_confirmation', report_id=report_id)
+
             except Exception as e:
+                print("DEBUG: Exception in add_report:", e)
+                traceback.print_exc(file=sys.stdout)
                 return render(request, 'add_report.html', {'form': form, 'error': 'Error saving the report'})
         else:
+            print("DEBUG: Form is invalid. Errors:")
+            print(form.errors)
             return render(request, 'add_report.html', {'form': form, 'error': 'Form is invalid'})
     else:
         form = ReportForm()
     return render(request, 'add_report.html', {'form': form})
-
 
 # Ibrahim BSPM25T29-3
 def report_confirmation(request, report_id):
