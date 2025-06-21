@@ -1,10 +1,8 @@
-<!-- Ibrahim BSPM25T29-3 -->
-
 <!DOCTYPE html>
-<html lang="en">
+<html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>Report Submitted</title>
+    <title>הדיווח נשלח בהצלחה</title>
     <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600&display=swap" rel="stylesheet">
     <style>
         body {
@@ -18,53 +16,46 @@
             text-align: center;
             color: #333;
         }
-
         .message-box {
             background-color: #ffffffee;
             padding: 40px;
             border-radius: 16px;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-            max-width: 400px;
-            width: 90%;
+            max-width: 450px;
+            width: 95%;
             border-top: 6px solid #28a745;
         }
-
-        h2 {
-            color: #28a745;
-            margin-bottom: 20px;
-            font-size: 1.8rem;
-        }
-
-        p {
-            font-size: 1rem;
-            margin: 10px 0;
-        }
-
+        h2 { color: #28a745; margin-bottom: 20px; font-size: 1.8rem; }
+        .label { font-weight: bold; color: #007bff; }
+        .val { color: #444; }
+        p { font-size: 1rem; margin: 10px 0; }
         a {
             display: inline-block;
-            margin-top: 20px;
-            padding: 10px 20px;
+            margin-top: 24px;
+            padding: 10px 22px;
             background-color: #007bff;
             color: white;
             text-decoration: none;
             border-radius: 8px;
             font-weight: bold;
-            transition: background-color 0.3s ease;
+            transition: background-color 0.3s;
         }
-
-        a:hover {
-            background-color: #0056b3;
-        }
+        a:hover { background-color: #0056b3; }
     </style>
 </head>
 <body>
     <div class="message-box">
-        <h2>Report Submitted Successfully</h2>
-        <p>Thank you for your report.</p>
-        <p><strong>Reference ID:</strong> 12345</p>
-        <p><strong>Title:</strong> Streetlight Outage</p>
-        <p><strong>Status:</strong> Open</p>
-        <a href="/">View All Reports</a>
+        <h2>הדיווח נשלח בהצלחה</h2>
+        <p>תודה שדיווחת! הדיווח התקבל.</p>
+        <p><span class="label">מזהה דיווח:</span> <span class="val">{{ report.id|default:"-" }}</span></p>
+        <p><span class="label">כותרת:</span> <span class="val">{{ report.title|default:"-" }}</span></p>
+        <p><span class="label">סטטוס:</span> <span class="val">{{ report.status|default:"-" }}</span></p>
+        <p><span class="label">סוג:</span> <span class="val">{{ report.type|default:"-" }}</span></p>
+        <p><span class="label">מיקום:</span> <span class="val">{{ report.location|default:"-" }}</span></p>
+        <p><span class="label">תיאור:</span> <span class="val">{{ report.description|default:"-" }}</span></p>
+        <p><span class="label">קו רוחב:</span> <span class="val">{{ report.latitude|default:"-" }}</span></p>
+        <p><span class="label">קו אורך:</span> <span class="val">{{ report.longitude|default:"-" }}</span></p>
+        <a href="{% url 'report_list' %}">לרשימת הדיווחים</a>
     </div>
 </body>
 </html>
