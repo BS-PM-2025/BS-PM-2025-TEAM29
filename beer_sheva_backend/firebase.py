@@ -22,13 +22,14 @@ def initialize_firebase():
 
     return firestore.client()
 
-#Firas BSPM25T29-16
-def save_report_to_firebase(title, description, location, latitude, longitude, report_type, reporter_email, image_url=None):
+
+
+def save_report_to_firebase(title, description, location, latitude, longitude, report_type,reporter_email):
     db = firestore.client()
 
     created_at = datetime.datetime.utcnow()
 
-    report_data = db.collection('Reports').add({
+    report_ref = db.collection('Reports').add({
         'title': title,
         'description': description,
         'location': location,
@@ -36,15 +37,15 @@ def save_report_to_firebase(title, description, location, latitude, longitude, r
         'longitude': longitude,
         'created_at': created_at,
         'type': report_type,
-        'reporter_email': reporter_email,  # new
+        'reporter_email': reporter_email,
         'status': 'pending',
-        'supporters': []  # Let Other Users "Join" (Support) a Report
+        'supporters': []
     })
-    if image_url:
-        report_data['image_url'] = image_url
 
-    report_ref = db.collection('Reports').add(report_data)
-    return report_ref[1].id
+    report_id = report_ref[1].id
+
+    return report_id
+
 
 #Malik BSPM25T29-18
 def get_reports_from_firebase(report_type=None, user_location=None, radius=None):
@@ -89,12 +90,14 @@ def get_reports_from_firebase(report_type=None, user_location=None, radius=None)
 
 #Ibrahim BSPM25T29-3
 def get_report_by_id(report_id):
-    """Get a single report by its ID"""
     db = firestore.client()
     doc = db.collection('Reports').document(report_id).get()
     if doc.exists:
-        return doc.to_dict()
+        report = doc.to_dict()
+        report['id'] = doc.id  # <- Add this line!
+        return report
     return None
+
 #BSPM25T29-58
 def join_report(request, report_id):
     if not request.user.is_authenticated:
