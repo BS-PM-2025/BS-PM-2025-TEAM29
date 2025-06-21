@@ -16,10 +16,11 @@ FIREBASE_WEB_API_KEY = settings.FIREBASE_WEB_API_KEY  # Add this to settings
 @csrf_exempt
 def register_view(request):
     if request.method == 'POST':
-        username = request.POST.get('username')  # 👈 Get the username
+        username = request.POST.get('username')
         email = request.POST.get('email')
         password = request.POST.get('password')
         confirm = request.POST.get('confirm_password')
+        role = request.POST.get('role', 'user')  # <-- Default to user
 
         if password != confirm:
             messages.error(request, "Passwords do not match.")
@@ -33,9 +34,9 @@ def register_view(request):
             # 2. Save user info to Firestore with UID as doc ID
             db = firestore.client()
             db.collection('Users').document(uid).set({
-                'username': username,   # 👈 Store username
+                'username': username,
                 'email': email,
-                'role': 'user',
+                'role': role,         # <-- Save the selected role
                 'id': uid,
             })
 
@@ -49,10 +50,10 @@ def register_view(request):
     return render(request, 'register.html')
 
 
-
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from .firebase_auth import firebase_sign_in
+from firebase_admin import firestore
 
 def user_login(request):
     if request.method == 'POST':
@@ -72,7 +73,8 @@ def user_login(request):
             if user_doc is None:
                 messages.error(request, "Username not found.")
                 return redirect('login')
-            email = user_doc.to_dict().get('email')
+            user_info = user_doc.to_dict()
+            email = user_info.get('email')
 
         user_data = firebase_sign_in(email, password)
         if user_data:
@@ -80,12 +82,22 @@ def user_login(request):
             request.session['firebase_uid'] = firebase_uid
             request.session['user_email'] = email
 
-            # 🔐 Fetch user role from Firestore
-            role_doc = db.collection('Users').document(firebase_uid).get()
-            if role_doc.exists:
-                role = role_doc.to_dict().get('role', 'user')
+            # 🔐 Fetch user info from Firestore and save to session
+            user_doc = db.collection('Users').document(firebase_uid).get()
+            if user_doc.exists:
+                user_info = user_doc.to_dict()
+                role = user_info.get('role', 'user')
+                username = user_info.get('username', email)
                 request.session['user_role'] = role
+                request.session['username'] = username
 
+                # If user is a worker, save their jobs list in session for easy access
+                if role == 'worker':
+                    jobs = user_info.get('jobs', [])
+                    request.session['jobs'] = jobs  # can be list of dicts, e.g. [{"report_id": "...", "role": "..."}]
+                    print("Logged-in worker jobs:", jobs)
+
+            print("Session after login:", dict(request.session))
             messages.success(request, f"Welcome {identifier}")
             return redirect('report_list')
         else:
@@ -93,6 +105,7 @@ def user_login(request):
             return redirect('login')
 
     return render(request, 'login.html')
+
 
 def logout_view(request):
     request.session.flush()  # Clears all session data
